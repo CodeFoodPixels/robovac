@@ -1,0 +1,37 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Device is already configured"
+        },
+        "error": {
+            "cannot_connect": "Failed to connect",
+            "invalid_auth": "Invalid authentication",
+            "unknown": "Unexpected error"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Host",
+                    "password": "Password",
+                    "username": "Username"
+                },
+              "description": "Enter your Eufy account details"
+            }
+        }
+    },
+    "options": {
+        "error": {
+          "invalid_path": "The path provided is not valid. Should be in the format `user/repo-name` and should be a valid github repository."
+        },
+        "step": {
+          "init": {
+            "title": "Manage IPs",
+            "data": {
+              "vacuum": "Select the Vacuum to edit",
+              "ip_address": "IP address of vacuum"
+            },
+            "description": "Add or update a vacuums IP address"
+          }
+        }
+      }
+}
