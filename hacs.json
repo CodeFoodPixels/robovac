@@ -1,5 +1,5 @@
 {
-  "name": "Eufy Robovacs",
+  "name": "Eufy RoboVacs",
   "domains": "robovacs",
   "iot_class": "Local Polling",
   "render_readme": true
