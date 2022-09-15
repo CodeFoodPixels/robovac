@@ -25,6 +25,7 @@ import time
 import ast
 
 from typing import Any
+from enum import IntEnum
 from homeassistant.components.vacuum import StateVacuumEntity, VacuumEntityFeature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -49,6 +50,23 @@ from .const import CONF_VACS, DOMAIN
 from .tuyalocalapi import TuyaDevice
 
 from homeassistant.const import ATTR_BATTERY_LEVEL
+
+
+class RoboVacEntityFeature(IntEnum):
+    """Supported features of the RoboVac entity."""
+
+    EDGE = 1
+    SMALL_ROOM = 2
+    CLEANING_TIME = 4
+    CLEANING_AREA = 8
+    DO_NOT_DISTURB = 16
+    AUTO_RETURN = 32
+    CONSUMABLES = 64
+    ROOM = 128
+    ZONE = 256
+    MAP = 512
+    BOOST_IQ = 1024
+
 
 ATTR_BATTERY_ICON = "battery_icon"
 ATTR_FAN_SPEED = "fan_speed"
@@ -104,6 +122,12 @@ class RoboVacEntity(StateVacuumEntity):
     _attr_boost_iq: str | None = None
     _attr_consumables: str | None = None
     _attr_mode: str | None = None
+    _attr_robovac_supported: str | None = None
+
+    @property
+    def robovac_supported(self) -> str | None:
+        """Return the cleaning mode of the vacuum cleaner."""
+        return self._attr_robovac_supported
 
     @property
     def mode(self) -> str | None:
@@ -166,13 +190,19 @@ class RoboVacEntity(StateVacuumEntity):
             data[ATTR_FAN_SPEED] = self.fan_speed
         if self.supported_features & VacuumEntityFeature.STATUS:
             data[ATTR_STATUS] = self.status
-        data[ATTR_CLEANING_AREA] = self.cleaning_area
-        data[ATTR_CLEANING_TIME] = self.cleaning_time
-        data[ATTR_AUTO_RETURN] = self.auto_return
-        data[ATTR_DO_NOT_DISTURB] = self.do_not_disturb
-        data[ATTR_BOOST_IQ] = self.boost_iq
-        data[ATTR_CONSUMABLES] = self.consumables
         data[ATTR_MODE] = self.mode
+        if self.robovac_supported & RoboVacEntityFeature.CLEANING_AREA:
+            data[ATTR_CLEANING_AREA] = self.cleaning_area
+        if self.robovac_supported & RoboVacEntityFeature.CLEANING_TIME:
+            data[ATTR_CLEANING_TIME] = self.cleaning_time
+        if self.robovac_supported & RoboVacEntityFeature.AUTO_RETURN:
+            data[ATTR_AUTO_RETURN] = self.auto_return
+        if self.robovac_supported & RoboVacEntityFeature.DO_NOT_DISTURB:
+            data[ATTR_DO_NOT_DISTURB] = self.do_not_disturb
+        if self.robovac_supported & RoboVacEntityFeature.BOOST_IQ:
+            data[ATTR_BOOST_IQ] = self.boost_iq
+        if self.robovac_supported & RoboVacEntityFeature.CONSUMABLES:
+            data[ATTR_CONSUMABLES] = self.consumables
         return data
 
     @property
@@ -203,7 +233,8 @@ class RoboVacEntity(StateVacuumEntity):
         self._attr_model_code = item[CONF_MODEL]
         self._attr_ip_address = item[CONF_IP_ADDRESS]
         self._attr_access_token = item[CONF_ACCESS_TOKEN]
-        if self.model_code in [
+        self._attr_robovac_supported = 0
+        if self.model_code[0:5] in [
             "T2103",
             "T2117",
             "T2118",
@@ -214,10 +245,31 @@ class RoboVacEntity(StateVacuumEntity):
             "T2130",
         ]:  # C
             self._attr_fan_speed_list = ["No Suction", "Standard", "Boost IQ", "Max"]
-        elif self.model_code in ["T1250", "T2250", "T2251", "T2252", "T2253"]:  # G
+            self._attr_robovac_supported = (
+                RoboVacEntityFeature.EDGE | RoboVacEntityFeature.SMALL_ROOM
+            )
+        elif self.model_code[0:5] in ["T1250", "T2250", "T2251", "T2252", "T2253"]:  # G
             self._attr_fan_speed_list = ["Standard", "Turbo", "Max", "Boost IQ"]
-        elif self.model_code in ["T2262"]:  # X
+            self._attr_robovac_supported = (
+                RoboVacEntityFeature.CLEANING_TIME
+                | RoboVacEntityFeature.CLEANING_AREA
+                | RoboVacEntityFeature.DO_NOT_DISTURB
+                | RoboVacEntityFeature.AUTO_RETURN
+                | RoboVacEntityFeature.CONSUMABLES
+            )
+        elif self.model_code[0:5] in ["T2262"]:  # X
             self._attr_fan_speed_list = ["Pure", "Standard", "Turbo", "Max"]
+            self._attr_robovac_supported = (
+                RoboVacEntityFeature.CLEANING_TIME
+                | RoboVacEntityFeature.CLEANING_AREA
+                | RoboVacEntityFeature.DO_NOT_DISTURB
+                | RoboVacEntityFeature.AUTO_RETURN
+                | RoboVacEntityFeature.CONSUMABLES
+                | RoboVacEntityFeature.ROOM
+                | RoboVacEntityFeature.ZONE
+                | RoboVacEntityFeature.MAP
+                | RoboVacEntityFeature.BOOST_IQ
+            )
         else:
             self._attr_fan_speed_list = ["Standard"]
         self._attr_mode = None
@@ -473,3 +525,5 @@ class RoboVacEntity(StateVacuumEntity):
             base64_str = base64.b64encode(json_str.encode("utf8")).decode("utf8")
             _LOGGER.info("roomClean call %s", json_str)
             await self.vacuum.async_set({"124": base64_str}, None)
+        await asyncio.sleep(1)
+        self.async_update
