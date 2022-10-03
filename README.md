@@ -254,7 +254,7 @@ logger:
   default: warning
   logs:
     custom_components.robovac.vacuum: debug
-    custom_components.robovac.tuya: debug
+    custom_components.robovac.tuyalocalapi: debug
 ```
 ---
 
