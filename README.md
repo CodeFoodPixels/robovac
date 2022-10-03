@@ -2,7 +2,7 @@
 <a href="https://www.buymeacoffee.com/bmccluskey" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 # Eufy RobovVac control for Home Assistant
 
-A brand new version that includes a Config Flow to add your RoboVac(s) and the local key and ID required.  All you need to do is enter your Eufy app credentials and the Config Flow will look up the details for you. After the initial config use the configuration button on the Integration to enter the RoboVac IP address when prompted.
+A brand new version Eufy RoboVac integration for Home Assistant that includes a Config Flow to add your RoboVac(s) and the local key and ID required.  All you need to do is enter your Eufy app credentials and the Config Flow will look up the details for you. After the initial config use the configuration button on the Integration to enter the RoboVac IP address when prompted.
 
 This work has evovled from the original work by Richard Mitchell https://github.com/mitchellrj and the countless others who have contributed over the last couple of years. It also builds on the work done by Andre Borie https://gitlab.com/Rjevski/eufy-device-id-and-local-key-grabber to get the required local ID and key.
 
