@@ -32,12 +32,9 @@ If you want you can clone this repo manually, oterwise use HACS (Recommended).
 
 Please note: You may have to get a new version of the access key for your vacuum from time to time if Eufy change it. Worst case you have to Delete the integration and re add it to get the new key.
 
+### Optional 1: Scripts
 
-5. Optional:  Search in HACS for the Vacuum Card by Denys Dovhan and install it and configure it in lovelace to use you vacuum.  Note there is a minor "feature" in the vacuum card where it doesnt show the correct values in toolbar when they update and there is a template adjusting what is being displayed. A screen refresh shows the correct vaules.  Hopefully this will be fixed soon.
-
-The install is designed to work with the standard Home Assistant Lovelace card but that doesnt support all the options of your Robovac. I have created some scripts to send the relevant commands to the Robovac. 
-
-12. Optional1: These script
+The integration is designed to work with the standard Home Assistant Lovelace card but that doesnt support all the options of your Robovac. I have created some scripts to send the relevant commands to the Robovac. 
 
 Add the below text to your scripts.yaml file for a xxC RoboVAC. It should be in the same folder as your configuration.yaml
 ```
@@ -150,10 +147,13 @@ x8_dock:
       entity_id: vacuum.x8
   mode: single
 ```
-
 The facilities in the script options above only work on the those model series. i.e. You cant do edge cleaning on the G30 and you cant do the autoreturn on the 15C.
 
-5b. Edit the lovelace vaccum card and add the following to the cards yaml if you have a 15C.
+### Optional 2 : Lovelace Card
+
+Search in HACS for the Vacuum Card by Denys Dovhan and install it and configure it in lovelace to use you vacuum.  Note there is a minor "feature" in the vacuum card where it doesnt show the correct values in toolbar when they update and there is a template adjusting what is being displayed. A screen refresh shows the correct vaules.  Hopefully this will be fixed soon.
+
+Edit the lovelace vaccum card and add the following to the cards yaml if you have a xxC.
 ```
 type: custom:vacuum-card
 entity: vacuum.15c
@@ -172,7 +172,7 @@ shortcuts:
     service: script.15c_smallroomclean
     icon: mdi:timer-cog-outline
 ```
-Again if you have the G30 you will add these lines to the cards yaml.
+Again if you have the Gxx you will add these lines to the cards yaml.
 ```
 type: custom:vacuum-card
 entity: vacuum.g30
@@ -247,21 +247,14 @@ shortcuts:
     icon: mdi:volume-off
 ```
 
-## Background Info ##
-The original version of the scripts had a type entry on the configuration file. This was used to look up fan speeds and supported features of the vacuum.  I have implemented this in the configuration.yaml instead as it makes for easier updating and makes it clearer how the information is used. The example of fan speeds anf support above are for a 15C and should work for most models. As I get information for other models I shall include here and you can update your configuration.yaml.
-
-The fan speeds section links the internal vacuum command to a more fiendly display name for the fan modes within the vacuum.  different models have different options available, so this list can change by model.
-
-The support section is used to describe the functions and data that can be exchanged with the standard vacuum integration in home assistant and what options will be available on the default vacuum card.  It really doesnt do much else. 
-
 ## Debugging ##
 I have left quite a few debug statements in the code and they may be useful to see whats happening by looking in the System Log files. The Log Viewer Addon available in the Home Assistance store can be very useful to watch the logs being updated in real time.  To get the debugging to add to the logs you need to add the below text to your configuration.yaml 
 ```
 logger:
   default: warning
   logs:
-    custom_components.eufy_vacuum.vacuum: debug
-    custom_components.eufy_vacuum.tuya: debug
+    custom_components.robovac.vacuum: debug
+    custom_components.robovac.tuya: debug
 ```
 ---
 
