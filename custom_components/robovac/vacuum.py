@@ -27,7 +27,14 @@ import ast
 from typing import Any
 from enum import IntEnum
 from homeassistant.loader import bind_hass
-from homeassistant.components.vacuum import VacuumEntity, VacuumEntityFeature
+from homeassistant.components.vacuum import (
+    StateVacuumEntity,
+    VacuumEntityFeature,
+    STATE_CLEANING,
+    STATE_DOCKED,
+    STATE_ERROR,
+    STATE_IDLE,
+    STATE_RETURNING,)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import (
@@ -106,16 +113,13 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Initialize my test integration 2 config entry."""
-    # print("vacuum:async_setup_entry")
     vacuums = config_entry.data[CONF_VACS]
-    # print("Vac:", vacuums)
     for item in vacuums:
         item = vacuums[item]
-        # print("item")
         async_add_entities([RoboVacEntity(item)])
 
 
-class RoboVacEntity(VacuumEntity):
+class RoboVacEntity(StateVacuumEntity):
     """Eufy Robovac version of a Vacuum entity"""
 
     _attr_should_poll = True
@@ -134,7 +138,7 @@ class RoboVacEntity(VacuumEntity):
 
     @property
     def robovac_supported(self) -> str | None:
-        """Return the cleaning mode of the vacuum cleaner."""
+        """Return the supported features of the vacuum cleaner."""
         return self._attr_robovac_supported
 
     @property
@@ -232,8 +236,6 @@ class RoboVacEntity(VacuumEntity):
             }
 
     def __init__(self, item) -> None:
-        # print("vacuum:RoboVacEntity")
-        # print("init_item", item)
         """Initialize mytest2 Sensor."""
         super().__init__()
         self._extra_state_attributes = {}
@@ -241,7 +243,7 @@ class RoboVacEntity(VacuumEntity):
         self._attr_is_on = False
         self._attr_name = item[CONF_NAME]
         self._attr_unique_id = item[CONF_ID]
-        self._attr_supported_features = 4084
+        self._attr_supported_features = 0
         self._attr_model_code = item[CONF_MODEL]
         self._attr_ip_address = item[CONF_IP_ADDRESS]
         self._attr_access_token = item[CONF_ACCESS_TOKEN]
@@ -256,18 +258,44 @@ class RoboVacEntity(VacuumEntity):
             "T2128",
             "T2130",
         ]:  # C
-            self._attr_fan_speed_list = ["No Suction", "Standard", "Boost IQ", "Max"]
+            self._attr_fan_speed_list = [
+                "No Suction", "Standard", "Boost IQ", "Max"]
             self._attr_robovac_supported = (
                 RoboVacEntityFeature.EDGE | RoboVacEntityFeature.SMALL_ROOM
             )
+            self._attr_supported_features = (
+                VacuumEntityFeature.BATTERY
+                | VacuumEntityFeature.CLEAN_SPOT
+                | VacuumEntityFeature.FAN_SPEED
+                | VacuumEntityFeature.LOCATE
+                | VacuumEntityFeature.PAUSE
+                | VacuumEntityFeature.RETURN_HOME
+                | VacuumEntityFeature.SEND_COMMAND
+                | VacuumEntityFeature.START
+                | VacuumEntityFeature.STATE
+                | VacuumEntityFeature.STOP
+            )
         elif self.model_code[0:5] in ["T1250", "T2250", "T2251", "T2252", "T2253"]:  # G
-            self._attr_fan_speed_list = ["Standard", "Turbo", "Max", "Boost IQ"]
+            self._attr_fan_speed_list = [
+                "Standard", "Turbo", "Max", "Boost IQ"]
             self._attr_robovac_supported = (
                 RoboVacEntityFeature.CLEANING_TIME
                 | RoboVacEntityFeature.CLEANING_AREA
                 | RoboVacEntityFeature.DO_NOT_DISTURB
                 | RoboVacEntityFeature.AUTO_RETURN
                 | RoboVacEntityFeature.CONSUMABLES
+            )
+            self._attr_supported_features = (
+                VacuumEntityFeature.BATTERY
+                | VacuumEntityFeature.CLEAN_SPOT
+                | VacuumEntityFeature.FAN_SPEED
+                | VacuumEntityFeature.LOCATE
+                | VacuumEntityFeature.PAUSE
+                | VacuumEntityFeature.RETURN_HOME
+                | VacuumEntityFeature.SEND_COMMAND
+                | VacuumEntityFeature.START
+                | VacuumEntityFeature.STATE
+                | VacuumEntityFeature.STOP
             )
         elif self.model_code[0:5] in ["T2262"]:  # X
             self._attr_fan_speed_list = ["Pure", "Standard", "Turbo", "Max"]
@@ -282,6 +310,19 @@ class RoboVacEntity(VacuumEntity):
                 | RoboVacEntityFeature.MAP
                 | RoboVacEntityFeature.BOOST_IQ
             )
+            self._attr_supported_features = (
+                VacuumEntityFeature.BATTERY
+                | VacuumEntityFeature.CLEAN_SPOT
+                | VacuumEntityFeature.FAN_SPEED
+                | VacuumEntityFeature.LOCATE
+                | VacuumEntityFeature.MAP
+                | VacuumEntityFeature.PAUSE
+                | VacuumEntityFeature.RETURN_HOME
+                | VacuumEntityFeature.SEND_COMMAND
+                | VacuumEntityFeature.START
+                | VacuumEntityFeature.STATE
+                | VacuumEntityFeature.STOP
+            )
         else:
             self._attr_fan_speed_list = ["Standard"]
         self._attr_mode = None
@@ -294,8 +335,6 @@ class RoboVacEntity(VacuumEntity):
             connections=[
                 (CONNECTION_NETWORK_MAC, item[CONF_MAC]),
             ],
-            access_token=item[CONF_ACCESS_TOKEN],
-            ip_address=item[CONF_IP_ADDRESS],
         )
         self.vacuum = robovac(
             device_id=self.unique_id,
@@ -308,11 +347,9 @@ class RoboVacEntity(VacuumEntity):
         self.error_code = None
         self.tuya_state = None
         self.tuyastatus = None
-        print("vac:", self.vacuum)
 
     async def async_update(self):
         """Synchronise state from the vacuum."""
-        print("update:", self.name)
         self.async_write_ha_state()
         if self.ip_address == "":
             return
@@ -544,7 +581,8 @@ class RoboVacEntity(VacuumEntity):
                 "timestamp": round(time.time() * 1000),
             }
             json_str = json.dumps(method_call, separators=(",", ":"))
-            base64_str = base64.b64encode(json_str.encode("utf8")).decode("utf8")
+            base64_str = base64.b64encode(
+                json_str.encode("utf8")).decode("utf8")
             _LOGGER.info("roomClean call %s", json_str)
             await self.vacuum.async_set({"124": base64_str}, None)
         await asyncio.sleep(1)
