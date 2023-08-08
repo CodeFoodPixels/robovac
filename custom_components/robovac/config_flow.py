@@ -183,7 +183,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     item_settings[CONF_IP_ADDRESS] = user_input[CONF_IP_ADDRESS]
             updated_repos = deepcopy(self.config_entry.data[CONF_VACS])
 
-            # print("Updated", updated_repos)
             if not errors:
                 # Value of data will be set on the options property of our config_entry
                 # instance.

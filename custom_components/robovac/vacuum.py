@@ -266,7 +266,7 @@ class RoboVacEntity(StateVacuumEntity):
             return
         await self.vacuum.async_get()
         self.tuyastatus = self.vacuum._dps
-        # print("Tuya local API Result:", self.tuyastatus)
+
         # for 15C
         self._attr_battery_level = self.tuyastatus.get(TUYA_CODES.BATTERY_LEVEL)
         self.tuya_state = self.tuyastatus.get(TUYA_CODES.STATE)
@@ -290,7 +290,6 @@ class RoboVacEntity(StateVacuumEntity):
                     "ascii"
                 )
             )["consumable"]["duration"]
-            print(self.consumables)
         # For X8
         self._attr_boost_iq = self.tuyastatus.get(TUYA_CODES.BOOST_IQ)
         # self.map_data = self.tuyastatus.get("121")
@@ -301,11 +300,9 @@ class RoboVacEntity(StateVacuumEntity):
                     "ascii"
                 )
             )["consumable"]["duration"]
-            print(self.consumables)
 
     async def async_locate(self, **kwargs):
         """Locate the vacuum cleaner."""
-        print("Locate Pressed")
         _LOGGER.info("Locate Pressed")
         if self.tuyastatus.get("103"):
             await self.vacuum.async_set({"103": False}, None)
@@ -314,7 +311,6 @@ class RoboVacEntity(StateVacuumEntity):
 
     async def async_return_to_base(self, **kwargs):
         """Set the vacuum cleaner to return to the dock."""
-        print("Return home Pressed")
         _LOGGER.info("Return home Pressed")
         await self.vacuum.async_set({"101": True}, None)
         await asyncio.sleep(1)
@@ -341,7 +337,6 @@ class RoboVacEntity(StateVacuumEntity):
 
     async def async_clean_spot(self, **kwargs):
         """Perform a spot clean-up."""
-        print("Spot Clean Pressed")
         _LOGGER.info("Spot Clean Pressed")
         await self.vacuum.async_set({"5": "Spot"}, None)
         await asyncio.sleep(1)
@@ -349,7 +344,6 @@ class RoboVacEntity(StateVacuumEntity):
 
     async def async_set_fan_speed(self, fan_speed, **kwargs):
         """Set fan speed."""
-        print("Fan Speed Selected", fan_speed)
         _LOGGER.info("Fan Speed Selected")
         if fan_speed == "No Suction":
             fan_speed = "No_suction"

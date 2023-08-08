@@ -708,7 +708,6 @@ class TuyaDevice:
         _call_async(self.async_set, dps)
 
     async def _async_ping(self, ping_interval):
-        # print("ping")
         self.last_ping = time.time()
         maybe_self = None if self.version < (3, 3) else self
         message = Message(Message.PING_COMMAND, sequence=0, encrypt_for=maybe_self)
