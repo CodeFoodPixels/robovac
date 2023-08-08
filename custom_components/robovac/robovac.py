@@ -118,4 +118,4 @@ class RoboVac(TuyaDevice):
 
 
     def getFanSpeeds(self):
-	    return ROBOVAC_SERIES_FAN_SPEEDS[self.getRoboVacSeries()]
+        return ROBOVAC_SERIES_FAN_SPEEDS[self.getRoboVacSeries()]
