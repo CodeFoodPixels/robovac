@@ -112,8 +112,8 @@ class RoboVac(TuyaDevice):
         return ROBOVAC_SERIES_FEATURES[self.getRoboVacSeries()]
 
     def getRoboVacSeries(self):
-        for series in ROBOVAC_SERIES:
-            if self.model_code in ROBOVAC_SERIES[series]:
+        for series, models in ROBOVAC_SERIES.items():
+            if self.model_code in models:
                 return series
 
 
