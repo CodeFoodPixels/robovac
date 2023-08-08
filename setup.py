@@ -26,8 +26,8 @@ dynamic_requires = []
 setup(
     name='robovac',
     version="1.0",
-    author='Brendan McCluskey',
-    url='http://github.com/bmccluskey/robovac',
+    author='Luke Bonaccorsi',
+    url='http://github.com/codefoodpixels/robovac',
     packages=find_packages(),
     scripts=[],
     description='Python API for controlling Eufy Robovac vacuum cleaners',
