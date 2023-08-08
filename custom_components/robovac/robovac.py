@@ -19,7 +19,7 @@ class RoboVacEntityFeature(IntEnum):
     BOOST_IQ = 1024
 
 
-HAS_MAP_FEATURE = ["T2261", "T2262"]
+HAS_MAP_FEATURE = ["T2253","T2261", "T2262"]
 
 ROBOVAC_SERIES = {
     "C": [
@@ -113,8 +113,8 @@ class RoboVac(TuyaDevice):
 
     def getRoboVacSeries(self):
         for series in ROBOVAC_SERIES:
-            if self.model_code in series.value:
-                return series.name
+            if self.model_code in ROBOVAC_SERIES[series]:
+                return series
 
 
     def getFanSpeeds(self):
