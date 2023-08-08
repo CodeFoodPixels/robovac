@@ -8,5 +8,6 @@
     "dependencies": [],
     "codeowners": ["@codefoodpixels"],
     "iot_class": "local_polling",
-    "integration_type": "device"
+    "integration_type": "device",
+    "version": "1.0.0"
 }
