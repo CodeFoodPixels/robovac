@@ -103,7 +103,7 @@ class RoboVac(TuyaDevice):
             | VacuumEntityFeature.STOP
         )
 
-        if self.modelCode in HAS_MAP_FEATURE:
+        if self.model_code in HAS_MAP_FEATURE:
             supportedFeatures |= VacuumEntityFeature.MAP
 
         return supportedFeatures
