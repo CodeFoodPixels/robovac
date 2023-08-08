@@ -103,7 +103,7 @@ class RoboVac(TuyaDevice):
             | VacuumEntityFeature.STOP
         )
 
-        if self.modelCode in HAS_MAP_FEATURE:
+        if self.model_code in HAS_MAP_FEATURE:
             supportedFeatures |= VacuumEntityFeature.MAP
 
         return supportedFeatures
@@ -112,9 +112,9 @@ class RoboVac(TuyaDevice):
         return ROBOVAC_SERIES_FEATURES[self.getRoboVacSeries()]
 
     def getRoboVacSeries(self):
-        for series in ROBOVAC_SERIES:
-            if self.model_code in series.value:
-                return series.name
+        for series, models in ROBOVAC_SERIES:
+            if self.model_code in models:
+                return series
 
 
     def getFanSpeeds(self):
