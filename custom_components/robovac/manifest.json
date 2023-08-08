@@ -1,13 +1,13 @@
 {
     "domain": "robovac",
     "name": "Eufy Robovac",
+    "codeowners": ["@codefoodpixels"],
     "config_flow": true,
+    "dependencies": [],
     "documentation": "https://github.com/codefoodpixels/robovac",
+    "integration_type": "device",
+    "iot_class": "local_polling",
     "issue_tracker": "https://github.com/codefoodpixels/robovac/issues",
     "requirements": [],
-    "dependencies": [],
-    "codeowners": ["@codefoodpixels"],
-    "iot_class": "local_polling",
-    "integration_type": "device",
     "version": "1.0.0"
 }
