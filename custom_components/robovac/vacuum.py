@@ -266,7 +266,7 @@ class RoboVacEntity(StateVacuumEntity):
             return
         await self.vacuum.async_get()
         self.tuyastatus = self.vacuum._dps
-        print("Tuya local API Result:", self.tuyastatus)
+        # print("Tuya local API Result:", self.tuyastatus)
         # for 15C
         self._attr_battery_level = self.tuyastatus.get(TUYA_CODES.BATTERY_LEVEL)
         self.tuya_state = self.tuyastatus.get(TUYA_CODES.STATE)

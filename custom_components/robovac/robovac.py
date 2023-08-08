@@ -19,7 +19,7 @@ class RoboVacEntityFeature(IntEnum):
     BOOST_IQ = 1024
 
 
-HAS_MAP_FEATURE = ["T2261", "T2262"]
+HAS_MAP_FEATURE = ["T2253","T2261", "T2262"]
 
 ROBOVAC_SERIES = {
     "C": [
