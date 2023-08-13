@@ -19,7 +19,7 @@ class RoboVacEntityFeature(IntEnum):
     BOOST_IQ = 1024
 
 
-HAS_MAP_FEATURE = ["T2253","T2261", "T2262"]
+HAS_MAP_FEATURE = ["T2182","T2253","T2261","T2262"]
 
 ROBOVAC_SERIES = {
     "C": [
@@ -41,6 +41,7 @@ ROBOVAC_SERIES = {
         "T2150",
         "T2255",
     ],
+	"L": ["T2182"],
     "X": ["T2261", "T2262"],
 }
 
@@ -51,6 +52,15 @@ ROBOVAC_SERIES_FEATURES = {
     | RoboVacEntityFeature.DO_NOT_DISTURB
     | RoboVacEntityFeature.AUTO_RETURN
     | RoboVacEntityFeature.CONSUMABLES,
+	"L": RoboVacEntityFeature.CLEANING_TIME
+    | RoboVacEntityFeature.CLEANING_AREA
+    | RoboVacEntityFeature.DO_NOT_DISTURB
+    | RoboVacEntityFeature.AUTO_RETURN
+    | RoboVacEntityFeature.CONSUMABLES
+    | RoboVacEntityFeature.ROOM
+    | RoboVacEntityFeature.ZONE
+    | RoboVacEntityFeature.MAP
+    | RoboVacEntityFeature.BOOST_IQ,
     "X": RoboVacEntityFeature.CLEANING_TIME
     | RoboVacEntityFeature.CLEANING_AREA
     | RoboVacEntityFeature.DO_NOT_DISTURB
@@ -65,6 +75,7 @@ ROBOVAC_SERIES_FEATURES = {
 ROBOVAC_SERIES_FAN_SPEEDS = {
 "C": ["No Suction", "Standard", "Boost IQ", "Max"],
 "G": ["Standard", "Turbo", "Max", "Boost IQ"],
+"L": ["Pure", "Standard", "Turbo", "Max"],
 "X": ["Pure", "Standard", "Turbo", "Max"],
 }
 
