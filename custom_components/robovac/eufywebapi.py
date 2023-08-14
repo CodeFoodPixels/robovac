@@ -30,12 +30,16 @@ class EufyLogon:
             "password": self.password,
         }
 
-        return requests.post(
-            login_url, json=login_auth, headers=eufyheaders, timeout=1.5
-        )
+        return requests.post(login_url, json=login_auth, headers=eufyheaders)
+
+    def get_user_settings(self, url, userid, token):
+        setting_url = url + "/v1/user/setting"
+        eufyheaders["token"] = token
+        eufyheaders["id"] = userid
+        return requests.request("GET", setting_url, headers=eufyheaders, timeout=1.5)
 
     def get_device_info(self, url, userid, token):
         device_url = url + "/v1/device/list/devices-and-groups"
         eufyheaders["token"] = token
         eufyheaders["id"] = userid
-        return requests.request("GET", device_url, headers=eufyheaders, timeout=1.5)
+        return requests.request("GET", device_url, headers=eufyheaders)

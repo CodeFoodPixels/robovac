@@ -41,9 +41,11 @@ from homeassistant.const import (
     CONF_MAC,
     CONF_LOCATION,
     CONF_CLIENT_ID,
+    CONF_REGION,
+    CONF_TIME_ZONE,
 )
 
-from .const import DOMAIN, CONF_VACS, CONF_PHONE_CODE
+from .const import DOMAIN, CONF_VACS
 
 from .tuyawebapi import TuyaAPISession
 from .eufywebapi import EufyLogon
@@ -77,8 +79,19 @@ def get_eufy_vacuums(self):
     )
 
     device_response = response.json()
+
+    response = eufy_session.get_user_settings(
+        user_response["user_info"]["request_host"],
+        user_response["user_info"]["id"],
+        user_response["access_token"],
+    )
+    settings_response = response.json()
+
     self[CONF_CLIENT_ID] = user_response["user_info"]["id"]
-    self[CONF_PHONE_CODE] = user_response["user_info"]["phone_code"]
+    self[CONF_REGION] = settings_response["setting"]["home_setting"]["tuya_home"][
+        "tuya_region_code"
+    ]
+    self[CONF_TIME_ZONE] = user_response["user_info"]["timezone"]
 
     # self[CONF_VACS] = {}
     items = device_response["items"]
@@ -97,7 +110,7 @@ def get_eufy_vacuums(self):
     self[CONF_VACS] = allvacs
 
     tuya_client = TuyaAPISession(
-        username="eh-" + self[CONF_CLIENT_ID], country_code=self[CONF_PHONE_CODE]
+        username="eh-" + self[CONF_CLIENT_ID], region=self[CONF_REGION], timezone=self[CONF_TIME_ZONE]
     )
     for home in tuya_client.list_homes():
         for device in tuya_client.list_devices(home["groupId"]):

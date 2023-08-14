@@ -2,4 +2,3 @@
 
 DOMAIN = "robovac"
 CONF_VACS = "vacuums"
-CONF_PHONE_CODE = "phone_code"

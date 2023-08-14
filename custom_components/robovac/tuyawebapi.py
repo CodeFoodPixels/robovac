@@ -78,7 +78,7 @@ DEFAULT_TUYA_QUERY_PARAMS = {
     "lang": "en",
     "osSystem": "12",
     "os": "Android",
-    "timeZoneId": "Europe/London",
+    "timeZoneId": "",
     "ttid": "android",
     "et": "0.0.1",
     "sdkVersion": "3.0.8cAnker",
@@ -86,19 +86,22 @@ DEFAULT_TUYA_QUERY_PARAMS = {
 
 
 class TuyaAPISession:
-
     username = None
     country_code = None
     session_id = None
 
-    def __init__(self, username, country_code):
+    def __init__(self, username, region, timezone):
         self.session = requests.session()
         self.session.headers = DEFAULT_TUYA_HEADERS.copy()
         self.default_query_params = DEFAULT_TUYA_QUERY_PARAMS.copy()
         self.default_query_params["deviceId"] = self.generate_new_device_id()
         self.username = username
-        self.country_code = country_code
-        self.base_url = TUYA_INITIAL_BASE_URL
+        self.country_code = self.getCountryCode(region)
+        self.base_url = {
+            "EU": "https://a1.tuyaeu.com",
+            "AY": "https://a1.tuyacn.com",
+        }.get(region, "https://a1.tuyaus.com")
+        DEFAULT_TUYA_QUERY_PARAMS["timeZoneId"] = timezone
 
     @staticmethod
     def generate_new_device_id():
@@ -183,8 +186,7 @@ class TuyaAPISession:
         encrypted_uid += encryptor.finalize()
         return md5(encrypted_uid.hex().upper().encode("utf-8")).hexdigest()
 
-    def request_session(self, username, country_code):
-        password = self.determine_password(username)
+    def request_session(self, username, password, country_code):
         token_response = self.request_token(username, country_code)
         encrypted_password = unpadded_rsa(
             key_exponent=int(token_response["exponent"]),
@@ -200,17 +202,33 @@ class TuyaAPISession:
             "options": '{"group": 1}',
             "token": token_response["token"],
         }
-        session_response = self._request(
-            action="tuya.m.user.uid.password.login.reg",
-            data=data,
-            _requires_session=False,
-        )
-        return session_response
+
+        try:
+            return self._request(
+                action="tuya.m.user.uid.password.login.reg",
+                data=data,
+                _requires_session=False,
+            )
+        except Exception as e:
+            error_password = md5("12345678".encode("utf8")).hexdigest()
+
+            if password != error_password:
+                return self.request_session(username, error_password, country_code)
+            else:
+                raise e
 
     def acquire_session(self):
-        session_response = self.request_session(self.username, self.country_code)
+        password = self.determine_password(self.username)
+        session_response = self.request_session(
+            self.username, password, self.country_code
+        )
         self.session_id = self.default_query_params["sid"] = session_response["sid"]
         self.base_url = session_response["domain"]["mobileApiUrl"]
+        self.country_code = (
+            session_response["phoneCode"]
+            if session_response["phoneCode"]
+            else self.getCountryCode(session_response["domain"]["regionCode"])
+        )
 
     def list_homes(self):
         return self._request(action="tuya.m.location.list", version="2.1")
@@ -221,3 +239,6 @@ class TuyaAPISession:
             version="1.0",
             query_params={"gid": home_id},
         )
+
+    def getCountryCode(self, region_code):
+        return {"EU": "44", "AY": "86"}.get(region_code, "1")
