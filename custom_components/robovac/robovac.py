@@ -41,7 +41,8 @@ ROBOVAC_SERIES = {
         "T2150",
         "T2255",
     ],
-	"L": ["T2182", "T2192"],
+	"L": ["T2182"],
+    "LR": ["T2192"],
     "X": ["T2261", "T2262"],
 }
 
@@ -61,6 +62,14 @@ ROBOVAC_SERIES_FEATURES = {
     | RoboVacEntityFeature.ZONE
     | RoboVacEntityFeature.MAP
     | RoboVacEntityFeature.BOOST_IQ,
+    "LR": RoboVacEntityFeature.CLEANING_TIME
+    | RoboVacEntityFeature.CLEANING_AREA
+    | RoboVacEntityFeature.DO_NOT_DISTURB
+    | RoboVacEntityFeature.AUTO_RETURN
+    | RoboVacEntityFeature.ROOM
+    | RoboVacEntityFeature.ZONE
+    | RoboVacEntityFeature.MAP
+    | RoboVacEntityFeature.BOOST_IQ,
     "X": RoboVacEntityFeature.CLEANING_TIME
     | RoboVacEntityFeature.CLEANING_AREA
     | RoboVacEntityFeature.DO_NOT_DISTURB
@@ -76,6 +85,7 @@ ROBOVAC_SERIES_FAN_SPEEDS = {
 "C": ["No Suction", "Standard", "Boost IQ", "Max"],
 "G": ["Standard", "Turbo", "Max", "Boost IQ"],
 "L": ["Pure", "Standard", "Turbo", "Max"],
+"LR": ["Quiet", "Standard", "Turbo", "Max"],
 "X": ["Pure", "Standard", "Turbo", "Max"],
 }
 
