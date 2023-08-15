@@ -284,22 +284,24 @@ class RoboVacEntity(StateVacuumEntity):
         self._attr_cleaning_time = self.tuyastatus.get(TUYA_CODES.CLEANING_TIME)
         self._attr_auto_return = self.tuyastatus.get(TUYA_CODES.AUTO_RETURN)
         self._attr_do_not_disturb = self.tuyastatus.get(TUYA_CODES.DO_NOT_DISTURB)
-        if self.tuyastatus.get(TUYA_CODES.G_CONSUMABLES) is not None:
-            self._attr_consumables = ast.literal_eval(
-                base64.b64decode(self.tuyastatus.get(TUYA_CODES.G_CONSUMABLES)).decode(
-                    "ascii"
-                )
-            )["consumable"]["duration"]
+        if self.robovac_supported & RoboVacEntityFeature.CONSUMABLES:
+            if self.tuyastatus.get(TUYA_CODES.G_CONSUMABLES) is not None:
+                self._attr_consumables = ast.literal_eval(
+                    base64.b64decode(self.tuyastatus.get(TUYA_CODES.G_CONSUMABLES)).decode(
+                        "ascii"
+                    )
+                )["consumable"]["duration"]
         # For X8
         self._attr_boost_iq = self.tuyastatus.get(TUYA_CODES.BOOST_IQ)
         # self.map_data = self.tuyastatus.get("121")
         # self.erro_msg? = self.tuyastatus.get("124")
-        if self.tuyastatus.get(TUYA_CODES.X_CONSUMABLES) is not None:
-            self._attr_consumables = ast.literal_eval(
-                base64.b64decode(self.tuyastatus.get(TUYA_CODES.X_CONSUMABLES)).decode(
-                    "ascii"
-                )
-            )["consumable"]["duration"]
+        if self.robovac_supported & RoboVacEntityFeature.CONSUMABLES:
+            if self.tuyastatus.get(TUYA_CODES.X_CONSUMABLES) is not None:
+                self._attr_consumables = ast.literal_eval(
+                    base64.b64decode(self.tuyastatus.get(TUYA_CODES.X_CONSUMABLES)).decode(
+                        "ascii"
+                    )
+                )["consumable"]["duration"]
 
     async def async_locate(self, **kwargs):
         """Locate the vacuum cleaner."""
