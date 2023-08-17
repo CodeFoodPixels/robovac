@@ -28,7 +28,7 @@ class TuyaLocalDiscovery(asyncio.DatagramProtocol):
         self._listeners = await asyncio.gather(listener, encrypted_listener)
         _LOGGER.debug("Listening to broadcasts on UDP port 6666 and 6667")
 
-    def close(self):
+    def close(self, *args, **kwargs):
         for transport, _ in self._listeners:
             transport.close()
 

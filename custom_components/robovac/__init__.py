@@ -31,14 +31,14 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup(hass, entry) -> bool:
     hass.data.setdefault(DOMAIN, {})
 
-    current_entries = hass.config_entries.async_entries(DOMAIN)
-    hass_data = dict(current_entries[0].data)
-
     def update_device(device):
+        current_entry = hass.config_entries.async_entries(DOMAIN)[0]
+        hass_data = current_entry.data.copy()
         if device["gwId"] in hass_data[CONF_VACS]:
-            if hass_data[CONF_VACS][device["gwId"]]["ip_address"] != device.ip:
-                hass_data[CONF_VACS][device["gwId"]]["ip_address"] = device.ip
-                hass.config_entries.async_update_entry(entry, data=hass_data)
+            if hass_data[CONF_VACS][device["gwId"]]["ip_address"] != device["ip"]:
+                hass_data[CONF_VACS][device["gwId"]]["ip_address"] = device["ip"]
+                hass.config_entries.async_update_entry(current_entry, data=hass_data)
+                _LOGGER.debug("Updated ip address of {} to {}".format(device["gwId"], device["ip"]))
 
     tuyalocaldiscovery = TuyaLocalDiscovery(update_device)
     try:
