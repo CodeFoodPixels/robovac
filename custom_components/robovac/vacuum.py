@@ -235,7 +235,7 @@ class RoboVacEntity(StateVacuumEntity):
             host=self.ip_address,
             local_key=self.access_token,
             timeout=2,
-            ping_interval=10,
+            ping_interval=60,
             model_code=self.model_code[0:5],
         )
 
@@ -398,3 +398,6 @@ class RoboVacEntity(StateVacuumEntity):
             await self.vacuum.async_set({"124": base64_str}, None)
         await asyncio.sleep(1)
         self.async_update
+
+    async def async_will_remove_from_hass(self):
+        await self.vacuum.async_disconnect()

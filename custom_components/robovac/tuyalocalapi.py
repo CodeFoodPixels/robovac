@@ -435,7 +435,6 @@ def crc(data):
 
 
 class Message:
-
     PING_COMMAND = 0x09
     GET_COMMAND = 0x0A
     SET_COMMAND = 0x07
@@ -708,6 +707,9 @@ class TuyaDevice:
         _call_async(self.async_set, dps)
 
     async def _async_ping(self, ping_interval):
+        if not self._connected:
+            return
+
         self.last_ping = time.time()
         maybe_self = None if self.version < (3, 3) else self
         message = Message(Message.PING_COMMAND, sequence=0, encrypt_for=maybe_self)
