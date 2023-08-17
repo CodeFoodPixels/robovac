@@ -38,20 +38,10 @@ class TuyaLocalDiscovery(asyncio.DatagramProtocol):
             cipher = Cipher(algorithms.AES(UDP_KEY), modes.ECB(), default_backend())
             decryptor = cipher.decryptor()
             padded_data = decryptor.update(data) + decryptor.finalize()
-            data = padded_data[: -ord(data[len(data) - 1 :])]
+            data = padded_data[: -ord(padded_data[len(padded_data) - 1 :])]
 
         except Exception:
             data = data.decode()
 
         decoded = json.loads(data)
         self.discovered_callback(decoded)
-
-async def discover():
-    """Discover and return devices on local network."""
-    discovery = TuyaDiscovery()
-    try:
-        await discovery.start()
-        await asyncio.sleep(DEFAULT_TIMEOUT)
-    finally:
-        discovery.close()
-    return discovery.devices
