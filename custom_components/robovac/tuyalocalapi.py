@@ -677,6 +677,7 @@ class TuyaDevice:
         try:
             sock.connect((self.host, self.port))
         except socket.timeout as e:
+            self._dps["106"] = "CONNECTION_FAILED"
             raise ConnectionTimeoutException("Connection timed out") from e
         self.reader, self.writer = await asyncio.open_connection(sock=sock)
         self._connected = True
@@ -740,6 +741,7 @@ class TuyaDevice:
             response_data = await self.reader.readuntil(MAGIC_SUFFIX_BYTES)
         except socket.error as e:
             _LOGGER.error("Connection to {} failed: {}".format(self, e))
+            self._dps["106"] = "CONNECTION_FAILED"
             asyncio.ensure_future(self.async_disconnect())
             return
         except asyncio.IncompleteReadError as e:

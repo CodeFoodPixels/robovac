@@ -201,7 +201,8 @@ class RoboVacEntity(StateVacuumEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the device-specific state attributes of this vacuum."""
         data: dict[str, Any] = {}
-        data[ATTR_ERROR] = getErrorMessage(self.error_code)
+        if type(self.error_code) is not None and self.error_code not in [0, "no_error"]:
+            data[ATTR_ERROR] = getErrorMessage(self.error_code)
 
         if self.supported_features & VacuumEntityFeature.STATUS:
             data[ATTR_STATUS] = self.status
@@ -263,6 +264,7 @@ class RoboVacEntity(StateVacuumEntity):
         """Synchronise state from the vacuum."""
         self.async_write_ha_state()
         if self.ip_address == "":
+            self.error_code = "IP_ADDRESS"
             return
         await self.vacuum.async_get()
         self.tuyastatus = self.vacuum._dps
