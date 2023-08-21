@@ -31,18 +31,21 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup(hass, entry) -> bool:
     hass.data.setdefault(DOMAIN, {})
 
-    def update_device(device):
-        current_entries = hass.config_entries.async_entries(DOMAIN)
-        if len(current_entries) == 0:
+    async def update_device(device):
+        entry = async_get_config_entry_for_device(hass, device["gwId"])
+
+        if entry == None:
             return
 
-        hass_data = current_entries[0].data.copy()
+        if not entry.state.recoverable:
+            return
+
+        hass_data = entry.data.copy()
         if device["gwId"] in hass_data[CONF_VACS]:
             if hass_data[CONF_VACS][device["gwId"]]["ip_address"] != device["ip"]:
                 hass_data[CONF_VACS][device["gwId"]]["ip_address"] = device["ip"]
-                hass.config_entries.async_update_entry(
-                    current_entries[0], data=hass_data
-                )
+                hass.config_entries.async_update_entry(entry, data=hass_data)
+                await hass.config_entries.async_reload(entry.entry_id)
                 _LOGGER.debug(
                     "Updated ip address of {} to {}".format(
                         device["gwId"], device["ip"]
@@ -53,7 +56,7 @@ async def async_setup(hass, entry) -> bool:
     try:
         await tuyalocaldiscovery.start()
         hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, tuyalocaldiscovery.close)
-    except Exception:  # pylint: disable=broad-except
+    except Exception:
         _LOGGER.exception("failed to set up discovery")
 
     return True
@@ -61,7 +64,6 @@ async def async_setup(hass, entry) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Eufy Robovac from a config entry."""
-
     entry.async_on_unload(entry.add_update_listener(update_listener))
 
     await hass.config_entries.async_forward_entry_setup(entry, PLATFORM)
@@ -80,4 +82,12 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def update_listener(hass, entry):
     """Handle options update."""
-    await hass.config_entries.async_reload(entry.entry_id)
+    hass.config_entries.async_reload(entry.entry_id)
+
+
+def async_get_config_entry_for_device(hass, device_id):
+    current_entries = hass.config_entries.async_entries(DOMAIN)
+    for entry in current_entries:
+        if device_id in entry.data[CONF_VACS]:
+            return entry
+    return None

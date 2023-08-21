@@ -10,6 +10,7 @@ _LOGGER = logging.getLogger(__name__)
 
 UDP_KEY = md5(b"yGAdlopoPVldABfn").digest()
 
+
 class TuyaLocalDiscovery(asyncio.DatagramProtocol):
     def __init__(self, callback):
         self.devices = {}
@@ -44,4 +45,4 @@ class TuyaLocalDiscovery(asyncio.DatagramProtocol):
             data = data.decode()
 
         decoded = json.loads(data)
-        self.discovered_callback(decoded)
+        asyncio.ensure_future(self.discovered_callback(decoded))
