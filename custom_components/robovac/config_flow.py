@@ -110,7 +110,9 @@ def get_eufy_vacuums(self):
     self[CONF_VACS] = allvacs
 
     tuya_client = TuyaAPISession(
-        username="eh-" + self[CONF_CLIENT_ID], region=self[CONF_REGION], timezone=self[CONF_TIME_ZONE]
+        username="eh-" + self[CONF_CLIENT_ID],
+        region=self[CONF_REGION],
+        timezone=self[CONF_TIME_ZONE],
     )
     for home in tuya_client.list_homes():
         for device in tuya_client.list_devices(home["groupId"]):
@@ -157,12 +159,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user", data_schema=USER_SCHEMA, errors=errors
         )
 
-    @staticmethod
-    @callback
-    def async_get_options_flow(config_entry):
-        """Get the options flow for this handler."""
-        return OptionsFlowHandler(config_entry)
-
 
 class CannotConnect(HomeAssistantError):
     """Error to indicate we cannot connect."""
@@ -170,53 +166,3 @@ class CannotConnect(HomeAssistantError):
 
 class InvalidAuth(HomeAssistantError):
     """Error to indicate there is invalid auth."""
-
-
-class OptionsFlowHandler(config_entries.OptionsFlow):
-    """Handles options flow for the component."""
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        self.config_entry = config_entry
-
-    async def async_step_init(
-        self, user_input: dict[str, Any] = None
-    ) -> dict[str, Any]:
-        """Manage the options for the custom component."""
-        errors: dict[str, str] = {}
-
-        vac_names = []
-        vacuums = self.config_entry.data[CONF_VACS]
-        for item in vacuums:
-            item_settings = vacuums[item]
-            vac_names.append(item_settings["name"])
-        if user_input is not None:
-            for item in vacuums:
-                item_settings = vacuums[item]
-                if item_settings["name"] == user_input["vacuum"]:
-                    item_settings[CONF_IP_ADDRESS] = user_input[CONF_IP_ADDRESS]
-            updated_repos = deepcopy(self.config_entry.data[CONF_VACS])
-
-            if not errors:
-                # Value of data will be set on the options property of our config_entry
-                # instance.
-                return self.async_create_entry(
-                    title="",
-                    data={CONF_VACS: updated_repos},
-                )
-
-        options_schema = vol.Schema(
-            {
-                vol.Optional("vacuum", default=1): selector(
-                    {
-                        "select": {
-                            "options": vac_names,
-                        }
-                    }
-                ),
-                vol.Optional(CONF_IP_ADDRESS): cv.string,
-            }
-        )
-
-        return self.async_show_form(
-            step_id="init", data_schema=options_schema, errors=errors
-        )

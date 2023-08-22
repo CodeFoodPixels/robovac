@@ -18,7 +18,7 @@ from __future__ import annotations
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EVENT_HOMEASSISTANT_STOP, Platform
+from homeassistant.const import EVENT_HOMEASSISTANT_STOP, Platform, CONF_IP_ADDRESS
 from homeassistant.core import HomeAssistant
 from .const import CONF_VACS, DOMAIN
 
@@ -42,13 +42,18 @@ async def async_setup(hass, entry) -> bool:
 
         hass_data = entry.data.copy()
         if device["gwId"] in hass_data[CONF_VACS]:
-            if hass_data[CONF_VACS][device["gwId"]]["ip_address"] != device["ip"]:
-                hass_data[CONF_VACS][device["gwId"]]["ip_address"] = device["ip"]
+            if (
+                hass_data[CONF_VACS][device["gwId"]]["ip_address"]
+                != device[CONF_IP_ADDRESS]
+            ):
+                hass_data[CONF_VACS][device["gwId"]]["ip_address"] = device[
+                    CONF_IP_ADDRESS
+                ]
                 hass.config_entries.async_update_entry(entry, data=hass_data)
                 await hass.config_entries.async_reload(entry.entry_id)
                 _LOGGER.debug(
                     "Updated ip address of {} to {}".format(
-                        device["gwId"], device["ip"]
+                        device["gwId"], device[CONF_IP_ADDRESS]
                     )
                 )
 
