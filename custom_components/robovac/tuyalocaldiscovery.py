@@ -20,10 +20,10 @@ class TuyaLocalDiscovery(asyncio.DatagramProtocol):
     async def start(self):
         loop = asyncio.get_running_loop()
         listener = loop.create_datagram_endpoint(
-            lambda: self, local_addr=("0.0.0.0", 6666)
+            lambda: self, local_addr=("0.0.0.0", 6666), reuse_port=True
         )
         encrypted_listener = loop.create_datagram_endpoint(
-            lambda: self, local_addr=("0.0.0.0", 6667)
+            lambda: self, local_addr=("0.0.0.0", 6667), reuse_port=True
         )
 
         self._listeners = await asyncio.gather(listener, encrypted_listener)
