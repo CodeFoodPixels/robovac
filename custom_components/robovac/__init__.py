@@ -41,7 +41,7 @@ async def async_setup(hass, entry) -> bool:
             return
 
         hass_data = entry.data.copy()
-        if device["gwId"] in hass_data[CONF_VACS]:
+        if device["gwId"] in hass_data[CONF_VACS] and device.get(CONF_IP_ADDRESS) is not None:
             if (
                 hass_data[CONF_VACS][device["gwId"]]["ip_address"]
                 != device[CONF_IP_ADDRESS]
