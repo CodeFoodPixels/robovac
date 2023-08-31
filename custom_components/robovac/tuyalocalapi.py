@@ -681,9 +681,6 @@ class TuyaDevice:
             raise ConnectionTimeoutException("Connection timed out") from e
         self.reader, self.writer = await asyncio.open_connection(sock=sock)
         self._connected = True
-        asyncio.ensure_future(self._async_handle_message())
-        asyncio.ensure_future(self._async_ping(self.ping_interval))
-        asyncio.ensure_future(self.async_get(callback))
 
     async def async_disconnect(self):
         _LOGGER.debug("Disconnected from {}".format(self))
@@ -737,16 +734,7 @@ class TuyaDevice:
         asyncio.ensure_future(self.async_set(new_values))
 
     async def _async_handle_message(self):
-        try:
-            response_data = await self.reader.readuntil(MAGIC_SUFFIX_BYTES)
-        except socket.error as e:
-            _LOGGER.error("Connection to {} failed: {}".format(self, e))
-            self._dps["106"] = "CONNECTION_FAILED"
-            asyncio.ensure_future(self.async_disconnect())
-            return
-        except asyncio.IncompleteReadError as e:
-            _LOGGER.error("Incomplete read from: {} : {}".format(self, e))
-            return
+        response_data = await self.reader.readuntil(MAGIC_SUFFIX_BYTES)
 
         try:
             message = Message.from_bytes(response_data, self.cipher)
@@ -759,17 +747,40 @@ class TuyaDevice:
             for c in self._handlers.get(message.command, []):
                 asyncio.ensure_future(c(message, self))
 
-        asyncio.ensure_future(self._async_handle_message())
-
     async def _async_send(self, message, retries=4):
         try:
             await self.async_connect()
-        except (socket.timeout, socket.error, OSError) as e:
+            _LOGGER.debug("Sending to {}: {}".format(self, message))
+            self.writer.write(message.bytes())
+            await self.writer.drain()
+            await self._async_handle_message()
+        except Exception as e:
             if retries == 0:
-                raise ConnectionException(
-                    "Failed to send data to {}".format(self)
-                ) from e
-            await self.async_connect()
+                if isinstance(e, socket.error):
+                    _LOGGER.error("Connection to {} failed: {}".format(self, e))
+                    self._dps["106"] = "CONNECTION_FAILED"
+                    asyncio.ensure_future(self.async_disconnect())
+                elif isinstance(e, asyncio.IncompleteReadError):
+                    _LOGGER.error("Incomplete read from: {} : {}".format(self, e))
+                else:
+                    _LOGGER.error("Failed to send data to {}".format(self))
+
+                return
+
+            if isinstance(e, socket.error):
+                _LOGGER.debug(
+                    "Retrying send due to error. Connection to {} failed: {}".format(
+                        self, e
+                    )
+                )
+            elif isinstance(e, asyncio.IncompleteReadError):
+                _LOGGER.debug(
+                    "Retrying send due to error.Incomplete read from: {} : {}".format(
+                        self, e
+                    )
+                )
+            else:
+                _LOGGER.debug(
+                    "Retrying send due to error. Failed to send data to {}".format(self)
+                )
             await self._async_send(message, retries=retries - 1)
-        _LOGGER.debug("Sending to {}: {}".format(self, message))
-        self.writer.write(message.bytes())
