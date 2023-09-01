@@ -41,19 +41,14 @@ async def async_setup(hass, entry) -> bool:
             return
 
         hass_data = entry.data.copy()
-        if device["gwId"] in hass_data[CONF_VACS] and device.get(CONF_IP_ADDRESS) is not None:
-            if (
-                hass_data[CONF_VACS][device["gwId"]]["ip_address"]
-                != device[CONF_IP_ADDRESS]
-            ):
-                hass_data[CONF_VACS][device["gwId"]]["ip_address"] = device[
-                    CONF_IP_ADDRESS
-                ]
+        if device["gwId"] in hass_data[CONF_VACS] and device.get("ip") is not None:
+            if hass_data[CONF_VACS][device["gwId"]][CONF_IP_ADDRESS] != device["ip"]:
+                hass_data[CONF_VACS][device["gwId"]][CONF_IP_ADDRESS] = device["ip"]
                 hass.config_entries.async_update_entry(entry, data=hass_data)
                 await hass.config_entries.async_reload(entry.entry_id)
                 _LOGGER.debug(
                     "Updated ip address of {} to {}".format(
-                        device["gwId"], device[CONF_IP_ADDRESS]
+                        device["gwId"], device["ip"]
                     )
                 )
 

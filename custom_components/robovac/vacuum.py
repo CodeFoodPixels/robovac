@@ -58,7 +58,12 @@ from homeassistant.const import (
 from .const import CONF_VACS, DOMAIN
 
 from .errors import getErrorMessage
-from .robovac import SUPPORTED_ROBOVAC_MODELS, RoboVac, RoboVacEntityFeature
+from .robovac import (
+    SUPPORTED_ROBOVAC_MODELS,
+    ModelNotSupportedException,
+    RoboVac,
+    RoboVacEntityFeature,
+)
 
 from homeassistant.const import ATTR_BATTERY_LEVEL
 
@@ -107,7 +112,6 @@ async def async_setup_entry(
     for item in vacuums:
         item = vacuums[item]
         entity = RoboVacEntity(item)
-        await entity.vacuum.async_connect()
         async_add_entities([entity], update_before_add=True)
 
 
@@ -249,14 +253,17 @@ class RoboVacEntity(StateVacuumEntity):
         self._attr_ip_address = item[CONF_IP_ADDRESS]
         self._attr_access_token = item[CONF_ACCESS_TOKEN]
 
-        self.vacuum = RoboVac(
-            device_id=self.unique_id,
-            host=self.ip_address,
-            local_key=self.access_token,
-            timeout=2,
-            ping_interval=REFRESH_RATE,
-            model_code=self.model_code[0:5],
-        )
+        try:
+            self.vacuum = RoboVac(
+                device_id=self.unique_id,
+                host=self.ip_address,
+                local_key=self.access_token,
+                timeout=2,
+                ping_interval=REFRESH_RATE,
+                model_code=self.model_code[0:5],
+            )
+        except ModelNotSupportedException:
+            self.error_code = "UNSUPPORTED_MODEL"
 
         self._attr_supported_features = self.vacuum.getHomeAssistantFeatures()
         self._attr_robovac_supported = self.vacuum.getRoboVacFeatures()
@@ -280,6 +287,9 @@ class RoboVacEntity(StateVacuumEntity):
 
     async def async_update(self):
         """Synchronise state from the vacuum."""
+        if self.error_code == "UNSUPPORTED_MODEL":
+            return
+
         if self.ip_address == "":
             self.error_code = "IP_ADDRESS"
             return

@@ -1,6 +1,7 @@
 ERROR_MESSAGES = {
     "IP_ADDRESS": "IP Address not set",
     "CONNECTION_FAILED": "Connection to the vacuum failed",
+    "UNSUPPORTED_MODEL": "This model is not supported",
     "no_error": "None",
     1:"Front bumper stuck",
     2:"Wheel stuck",
