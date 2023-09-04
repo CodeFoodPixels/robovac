@@ -11,6 +11,10 @@ _LOGGER = logging.getLogger(__name__)
 UDP_KEY = md5(b"yGAdlopoPVldABfn").digest()
 
 
+class DiscoveryPortsNotAvailableException(Exception):
+    """This model is not supported"""
+
+
 class TuyaLocalDiscovery(asyncio.DatagramProtocol):
     def __init__(self, callback):
         self.devices = {}
@@ -26,8 +30,13 @@ class TuyaLocalDiscovery(asyncio.DatagramProtocol):
             lambda: self, local_addr=("0.0.0.0", 6667), reuse_port=True
         )
 
-        self._listeners = await asyncio.gather(listener, encrypted_listener)
-        _LOGGER.debug("Listening to broadcasts on UDP port 6666 and 6667")
+        try:
+            self._listeners = await asyncio.gather(listener, encrypted_listener)
+            _LOGGER.debug("Listening to broadcasts on UDP port 6666 and 6667")
+        except Exception as e:
+            raise DiscoveryPortsNotAvailableException(
+                "Ports 6666 and 6667 are needed for autodiscovery but are unavailable. This may be due to having the localtuya integration installed and it not allowing other integrations to use the same ports. A pull request has been raised to address this: https://github.com/rospogrigio/localtuya/pull/1481"
+            )
 
     def close(self, *args, **kwargs):
         for transport, _ in self._listeners:
