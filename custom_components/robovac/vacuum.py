@@ -98,8 +98,7 @@ class TUYA_CODES(StrEnum):
     AUTO_RETURN = "135"
     DO_NOT_DISTURB = "107"
     BOOST_IQ = "118"
-    G_CONSUMABLES = "142"
-    X_CONSUMABLES = "116"
+    CONSUMABLES = ["142", "116"]
 
 
 async def async_setup_entry(
@@ -318,18 +317,16 @@ class RoboVacEntity(StateVacuumEntity):
         # self.map_data = self.tuyastatus.get("121")
         # self.erro_msg? = self.tuyastatus.get("124")
         if self.robovac_supported & RoboVacEntityFeature.CONSUMABLES:
-            robovac_series = self.vacuum.getRoboVacSeries()
-            if (
-                self.tuyastatus.get(TUYA_CODES["{}_CONSUMABLES".format(robovac_series)])
-                is not None
-            ):
-                self._attr_consumables = ast.literal_eval(
-                    base64.b64decode(
-                        self.tuyastatus.get(
-                            TUYA_CODES["{}_CONSUMABLES".format(robovac_series)]
+            for CONSUMABLE_CODE in TUYA_CODES.CONSUMABLES:
+                if (
+                    CONSUMABLE_CODE in self.tuyastatus
+                    and self.tuyastatus.get(CONSUMABLE_CODE) is not None
+                ):
+                    self._attr_consumables = ast.literal_eval(
+                        base64.b64decode(self.tuyastatus.get(CONSUMABLE_CODE)).decode(
+                            "ascii"
                         )
-                    ).decode("ascii")
-                )["consumable"]["duration"]
+                    )["consumable"]["duration"]
 
     async def async_locate(self, **kwargs):
         """Locate the vacuum cleaner."""
