@@ -15,23 +15,26 @@
                     "password": "Password",
                     "username": "Username"
                 },
-              "description": "Enter your Eufy account details"
+                "description": "Enter your Eufy account details"
             }
         }
     },
     "options": {
-        "error": {
-          "invalid_path": "The path provided is not valid. Should be in the format `user/repo-name` and should be a valid github repository."
-        },
         "step": {
-          "init": {
-            "title": "Manage IPs",
-            "data": {
-              "vacuum": "Select the Vacuum to edit",
-              "ip_address": "IP address of vacuum"
+            "init": {
+                "title": "Manage vacuums",
+                "data": {
+                    "selected_vacuum": "Select the Vacuum to edit"
+                }
             },
-            "description": "Add or update a vacuums IP address"
-          }
+            "edit": {
+                "title": "Edit vacuum",
+                "data": {
+                    "autodiscovery": "Enable autodiscovery",
+                    "ip_address": "IP Address"
+                },
+                "description": "Autodiscovery will automatically update the IP address"
+            }
         }
-      }
+    }
 }

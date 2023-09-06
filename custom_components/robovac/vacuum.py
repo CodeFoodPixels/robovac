@@ -98,7 +98,8 @@ class TUYA_CODES(StrEnum):
     AUTO_RETURN = "135"
     DO_NOT_DISTURB = "107"
     BOOST_IQ = "118"
-    CONSUMABLES = ["142", "116"]
+
+TUYA_CONSUMABLES_CODES = ["142", "116"]
 
 
 async def async_setup_entry(
@@ -317,7 +318,7 @@ class RoboVacEntity(StateVacuumEntity):
         # self.map_data = self.tuyastatus.get("121")
         # self.erro_msg? = self.tuyastatus.get("124")
         if self.robovac_supported & RoboVacEntityFeature.CONSUMABLES:
-            for CONSUMABLE_CODE in TUYA_CODES.CONSUMABLES:
+            for CONSUMABLE_CODE in TUYA_CONSUMABLES_CODES:
                 if (
                     CONSUMABLE_CODE in self.tuyastatus
                     and self.tuyastatus.get(CONSUMABLE_CODE) is not None

@@ -41,7 +41,11 @@ async def async_setup(hass, entry) -> bool:
             return
 
         hass_data = entry.data.copy()
-        if device["gwId"] in hass_data[CONF_VACS] and device.get("ip") is not None:
+        if (
+            device["gwId"] in hass_data[CONF_VACS]
+            and device.get("ip") is not None
+            and hass_data[CONF_VACS][device["gwId"]].get("autodiscovery", True)
+        ):
             if hass_data[CONF_VACS][device["gwId"]][CONF_IP_ADDRESS] != device["ip"]:
                 hass_data[CONF_VACS][device["gwId"]][CONF_IP_ADDRESS] = device["ip"]
                 hass.config_entries.async_update_entry(entry, data=hass_data)
@@ -82,7 +86,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def update_listener(hass, entry):
     """Handle options update."""
-    hass.config_entries.async_reload(entry.entry_id)
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
 def async_get_config_entry_for_device(hass, device_id):

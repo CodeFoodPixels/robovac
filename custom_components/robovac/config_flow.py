@@ -159,6 +159,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user", data_schema=USER_SCHEMA, errors=errors
         )
 
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry):
+        """Get the options flow for this handler."""
+        return OptionsFlowHandler(config_entry)
+
 
 class CannotConnect(HomeAssistantError):
     """Error to indicate we cannot connect."""
@@ -166,3 +172,71 @@ class CannotConnect(HomeAssistantError):
 
 class InvalidAuth(HomeAssistantError):
     """Error to indicate there is invalid auth."""
+
+
+class OptionsFlowHandler(config_entries.OptionsFlow):
+    """Handles options flow for the component."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        self.config_entry = config_entry
+        self.selected_vacuum = None
+
+    async def async_step_init(self, user_input=None):
+        errors = {}
+
+        if user_input is not None:
+            self.selected_vacuum = user_input["selected_vacuum"]
+            return await self.async_step_edit()
+
+        vacuums_config = self.config_entry.data[CONF_VACS]
+        vacuum_list = {}
+        for id in vacuums_config:
+            vacuum_list[id] = vacuums_config[id]["name"]
+
+        devices_schema = vol.Schema(
+            {vol.Required("selected_vacuum"): vol.In(vacuum_list)}
+        )
+
+        return self.async_show_form(
+            step_id="init", data_schema=devices_schema, errors=errors
+        )
+
+    async def async_step_edit(self, user_input=None):
+        """Manage the options for the custom component."""
+        errors = {}
+
+        vacuums = self.config_entry.data[CONF_VACS]
+
+        if user_input is not None:
+            updated_vacuums = deepcopy(vacuums)
+            updated_vacuums[self.selected_vacuum]["autodiscovery"] = user_input[
+                "autodiscovery"
+            ]
+            if user_input[CONF_IP_ADDRESS]:
+                updated_vacuums[self.selected_vacuum][CONF_IP_ADDRESS] = user_input[
+                    CONF_IP_ADDRESS
+                ]
+
+            self.hass.config_entries.async_update_entry(
+                self.config_entry,
+                data={CONF_VACS: updated_vacuums},
+            )
+
+            return self.async_create_entry(title="", data={})
+
+        options_schema = vol.Schema(
+            {
+                vol.Required(
+                    "autodiscovery",
+                    default=vacuums[self.selected_vacuum].get("autodiscovery", True),
+                ): bool,
+                vol.Optional(
+                    CONF_IP_ADDRESS,
+                    default=vacuums[self.selected_vacuum].get(CONF_IP_ADDRESS),
+                ): str,
+            }
+        )
+
+        return self.async_show_form(
+            step_id="edit", data_schema=options_schema, errors=errors
+        )
