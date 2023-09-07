@@ -45,7 +45,7 @@ from homeassistant.const import (
     CONF_TIME_ZONE,
 )
 
-from .const import DOMAIN, CONF_VACS
+from .const import CONF_AUTODISCOVERY, DOMAIN, CONF_VACS
 
 from .tuyawebapi import TuyaAPISession
 from .eufywebapi import EufyLogon
@@ -93,7 +93,6 @@ def get_eufy_vacuums(self):
     ]
     self[CONF_TIME_ZONE] = user_response["user_info"]["timezone"]
 
-    # self[CONF_VACS] = {}
     items = device_response["items"]
     allvacs = {}
     for item in items:
@@ -105,19 +104,34 @@ def get_eufy_vacuums(self):
                 CONF_DESCRIPTION: item["device"]["name"],
                 CONF_MAC: item["device"]["wifi"]["mac"],
                 CONF_IP_ADDRESS: "",
+                CONF_AUTODISCOVERY: True,
             }
             allvacs[item["device"]["id"]] = vac_details
-    self[CONF_VACS] = allvacs
 
     tuya_client = TuyaAPISession(
         username="eh-" + self[CONF_CLIENT_ID],
         region=self[CONF_REGION],
         timezone=self[CONF_TIME_ZONE],
     )
+
+    self[CONF_VACS] = {}
     for home in tuya_client.list_homes():
         for device in tuya_client.list_devices(home["groupId"]):
-            self[CONF_VACS][device["devId"]][CONF_ACCESS_TOKEN] = device["localKey"]
-            self[CONF_VACS][device["devId"]][CONF_LOCATION] = home["groupId"]
+            if device["devId"] not in allvacs:
+                _LOGGER.debug("Vacuum {} found on Tuya, but not on Eufy. Skipping.".format(device["devId"]))
+                continue
+
+            if "localKey" not in device or not device["localKey"]:
+                _LOGGER.error("Local key missing for vacuum {} ({}) in data from Tuya. Skipping.".format(allvacs[device["devId"]][CONF_NAME], device["devId"]))
+                continue
+
+            allvacs[device["devId"]][CONF_ACCESS_TOKEN] = device["localKey"]
+            allvacs[device["devId"]][CONF_LOCATION] = home["groupId"]
+            self[CONF_VACS][device["devId"]] = allvacs[device["devId"]]
+
+    for vacuum_id in allvacs:
+        if vacuum_id not in self[CONF_VACS]:
+            _LOGGER.error("Vacuum {} ({}) found on Eufy, but not on Tuya. Vacuum will not be added.".format(allvacs[vacuum_id][CONF_NAME], vacuum_id))
 
     return response
 
@@ -173,7 +187,6 @@ class CannotConnect(HomeAssistantError):
 class InvalidAuth(HomeAssistantError):
     """Error to indicate there is invalid auth."""
 
-
 class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handles options flow for the component."""
 
@@ -190,8 +203,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
         vacuums_config = self.config_entry.data[CONF_VACS]
         vacuum_list = {}
-        for id in vacuums_config:
-            vacuum_list[id] = vacuums_config[id]["name"]
+        for vacuum_id in vacuums_config:
+            vacuum_list[vacuum_id] = vacuums_config[vacuum_id]["name"]
 
         devices_schema = vol.Schema(
             {vol.Required("selected_vacuum"): vol.In(vacuum_list)}
@@ -209,8 +222,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
         if user_input is not None:
             updated_vacuums = deepcopy(vacuums)
-            updated_vacuums[self.selected_vacuum]["autodiscovery"] = user_input[
-                "autodiscovery"
+            updated_vacuums[self.selected_vacuum][CONF_AUTODISCOVERY] = user_input[
+                CONF_AUTODISCOVERY
             ]
             if user_input[CONF_IP_ADDRESS]:
                 updated_vacuums[self.selected_vacuum][CONF_IP_ADDRESS] = user_input[
@@ -227,8 +240,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         options_schema = vol.Schema(
             {
                 vol.Required(
-                    "autodiscovery",
-                    default=vacuums[self.selected_vacuum].get("autodiscovery", True),
+                    CONF_AUTODISCOVERY,
+                    default=vacuums[self.selected_vacuum].get(CONF_AUTODISCOVERY, True),
                 ): bool,
                 vol.Optional(
                     CONF_IP_ADDRESS,
