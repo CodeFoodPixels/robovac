@@ -191,10 +191,11 @@ class RoboVacEntity(StateVacuumEntity):
     def state(self) -> str | None:
         if self.tuya_state is None:
             return STATE_UNAVAILABLE
-        elif type(self.error_code) is not None and self.error_code not in [
+        elif type(self.error_code) is not None and self.error_code and  self.error_code not in [
             0,
             "no_error",
         ]:
+            _LOGGER.debug("State changed to error. Error message: {}".format(getErrorMessage(self.error_code)))
             return STATE_ERROR
         elif self.tuya_state == "Charging" or self.tuya_state == "completed":
             return STATE_DOCKED
