@@ -115,7 +115,7 @@ async def async_setup_entry(
     for item in vacuums:
         item = vacuums[item]
         entity = RoboVacEntity(item)
-        async_add_entities([entity], update_before_add=True)
+        async_add_entities([entity])
 
 
 class RoboVacEntity(StateVacuumEntity):
@@ -346,11 +346,15 @@ class RoboVacEntity(StateVacuumEntity):
                                 self.tuyastatus.get(CONSUMABLE_CODE)
                             ).decode("ascii")
                         )["consumable"]["duration"]
-            
+
             self.async_write_ha_state()
         except TuyaException as e:
             self.update_failures += 1
-            _LOGGER.debug("Update errored. Current failure count: {}. Reason: {}".format(self.update_failures, e))
+            _LOGGER.debug(
+                "Update errored. Current failure count: {}. Reason: {}".format(
+                    self.update_failures, e
+                )
+            )
             if self.update_failures == UPDATE_RETRIES:
                 self.update_failures = 0
                 self.error_code = "CONNECTION_FAILED"
