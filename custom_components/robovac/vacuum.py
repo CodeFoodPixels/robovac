@@ -346,6 +346,8 @@ class RoboVacEntity(StateVacuumEntity):
                                 self.tuyastatus.get(CONSUMABLE_CODE)
                             ).decode("ascii")
                         )["consumable"]["duration"]
+            
+            self.async_write_ha_state()
         except TuyaException as e:
             self.update_failures += 1
             _LOGGER.debug("Update errored. Current failure count: {}. Reason: {}".format(self.update_failures, e))
