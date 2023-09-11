@@ -722,7 +722,7 @@ class TuyaDevice:
         self.last_pong = time.time()
 
     async def async_update_state(self, state_message, _):
-        _LOGGER.info("Received updated state {}: {}").format(self, self._dps)
+        _LOGGER.info("Received updated state {}: {}".format(self, self._dps))
         self._dps.update(state_message.payload["dps"])
 
     @property

@@ -3,7 +3,7 @@
 [![Sponsor me on Github Sponsors](https://img.shields.io/badge/Sponsor-ea4aaa?style=for-the-badge&logo=github-sponsors&logoColor=%23EA4AAA&labelColor=white)](https://github.com/sponsors/CodeFoodPixels)
 [![Tip me through ko-fi](https://img.shields.io/badge/Ko–Fi-FF5E5B?style=for-the-badge&logo=kofi&logoColor=%23FF5E5B&labelColor=white)](https://ko-fi.com/O5O3O08PA)
 [![Tip me through PayPal](https://img.shields.io/badge/Paypal.me-00457C?style=for-the-badge&logo=paypal&logoColor=%2300457C&labelColor=white)](https://paypal.me/CodeFoodPixels)
-[![Tip me through Monzo](https://img.shields.io/badge/Monzo.me-14233C?style=for-the-badge&logo=monzo&logoColor=%2314233C&labelColor=white)](https://monzo.me/lukebonaccorsi)
+[![Tip me through Monzo](https://img.shields.io/badge/Monzo.me-14233C?style=for-the-badge&logo=monzo&logoColor=%2314233C&labelColor=white)](https://monzo.me/codefoodpixels)
 
 # Eufy RobovVac control for Home Assistant
 
