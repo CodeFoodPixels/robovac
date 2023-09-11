@@ -55,6 +55,7 @@ from homeassistant.const import (
     STATE_UNAVAILABLE,
 )
 
+from .tuyalocalapi import TuyaException
 from .const import CONF_VACS, DOMAIN
 
 from .errors import getErrorMessage
@@ -85,6 +86,7 @@ ATTR_MODE = "mode"
 _LOGGER = logging.getLogger(__name__)
 REFRESH_RATE = 20
 SCAN_INTERVAL = timedelta(seconds=REFRESH_RATE)
+UPDATE_RETRIES = 3
 
 
 class TUYA_CODES(StrEnum):
@@ -98,6 +100,7 @@ class TUYA_CODES(StrEnum):
     AUTO_RETURN = "135"
     DO_NOT_DISTURB = "107"
     BOOST_IQ = "118"
+
 
 TUYA_CONSUMABLES_CODES = ["142", "116"]
 
@@ -191,11 +194,20 @@ class RoboVacEntity(StateVacuumEntity):
     def state(self) -> str | None:
         if self.tuya_state is None:
             return STATE_UNAVAILABLE
-        elif type(self.error_code) is not None and self.error_code and  self.error_code not in [
-            0,
-            "no_error",
-        ]:
-            _LOGGER.debug("State changed to error. Error message: {}".format(getErrorMessage(self.error_code)))
+        elif (
+            type(self.error_code) is not None
+            and self.error_code
+            and self.error_code
+            not in [
+                0,
+                "no_error",
+            ]
+        ):
+            _LOGGER.debug(
+                "State changed to error. Error message: {}".format(
+                    getErrorMessage(self.error_code)
+                )
+            )
             return STATE_ERROR
         elif self.tuya_state == "Charging" or self.tuya_state == "completed":
             return STATE_DOCKED
@@ -254,6 +266,8 @@ class RoboVacEntity(StateVacuumEntity):
         self._attr_ip_address = item[CONF_IP_ADDRESS]
         self._attr_access_token = item[CONF_ACCESS_TOKEN]
 
+        self.update_failures = 0
+
         try:
             self.vacuum = RoboVac(
                 device_id=self.unique_id,
@@ -295,40 +309,50 @@ class RoboVacEntity(StateVacuumEntity):
             self.error_code = "IP_ADDRESS"
             return
 
-        await self.vacuum.async_get()
-        self.tuyastatus = self.vacuum._dps
+        try:
+            await self.vacuum.async_get()
 
-        # for 15C
-        self._attr_battery_level = self.tuyastatus.get(TUYA_CODES.BATTERY_LEVEL)
-        self.tuya_state = self.tuyastatus.get(TUYA_CODES.STATE)
-        self.error_code = self.tuyastatus.get(TUYA_CODES.ERROR_CODE)
-        self._attr_mode = self.tuyastatus.get(TUYA_CODES.MODE)
-        self._attr_fan_speed = self.tuyastatus.get(TUYA_CODES.FAN_SPEED)
-        if self.fan_speed == "No_suction":
-            self._attr_fan_speed = "No Suction"
-        elif self.fan_speed == "Boost_IQ":
-            self._attr_fan_speed = "Boost IQ"
-        elif self.fan_speed == "Quiet":
-            self._attr_fan_speed = "Pure"
-        # for G30
-        self._attr_cleaning_area = self.tuyastatus.get(TUYA_CODES.CLEANING_AREA)
-        self._attr_cleaning_time = self.tuyastatus.get(TUYA_CODES.CLEANING_TIME)
-        self._attr_auto_return = self.tuyastatus.get(TUYA_CODES.AUTO_RETURN)
-        self._attr_do_not_disturb = self.tuyastatus.get(TUYA_CODES.DO_NOT_DISTURB)
-        self._attr_boost_iq = self.tuyastatus.get(TUYA_CODES.BOOST_IQ)
-        # self.map_data = self.tuyastatus.get("121")
-        # self.erro_msg? = self.tuyastatus.get("124")
-        if self.robovac_supported & RoboVacEntityFeature.CONSUMABLES:
-            for CONSUMABLE_CODE in TUYA_CONSUMABLES_CODES:
-                if (
-                    CONSUMABLE_CODE in self.tuyastatus
-                    and self.tuyastatus.get(CONSUMABLE_CODE) is not None
-                ):
-                    self._attr_consumables = ast.literal_eval(
-                        base64.b64decode(self.tuyastatus.get(CONSUMABLE_CODE)).decode(
-                            "ascii"
-                        )
-                    )["consumable"]["duration"]
+            self.update_failures = 0
+            self.tuyastatus = self.vacuum._dps
+
+            # for 15C
+            self._attr_battery_level = self.tuyastatus.get(TUYA_CODES.BATTERY_LEVEL)
+            self.tuya_state = self.tuyastatus.get(TUYA_CODES.STATE)
+            self.error_code = self.tuyastatus.get(TUYA_CODES.ERROR_CODE)
+            self._attr_mode = self.tuyastatus.get(TUYA_CODES.MODE)
+            self._attr_fan_speed = self.tuyastatus.get(TUYA_CODES.FAN_SPEED)
+            if self.fan_speed == "No_suction":
+                self._attr_fan_speed = "No Suction"
+            elif self.fan_speed == "Boost_IQ":
+                self._attr_fan_speed = "Boost IQ"
+            elif self.fan_speed == "Quiet":
+                self._attr_fan_speed = "Pure"
+            # for G30
+            self._attr_cleaning_area = self.tuyastatus.get(TUYA_CODES.CLEANING_AREA)
+            self._attr_cleaning_time = self.tuyastatus.get(TUYA_CODES.CLEANING_TIME)
+            self._attr_auto_return = self.tuyastatus.get(TUYA_CODES.AUTO_RETURN)
+            self._attr_do_not_disturb = self.tuyastatus.get(TUYA_CODES.DO_NOT_DISTURB)
+            self._attr_boost_iq = self.tuyastatus.get(TUYA_CODES.BOOST_IQ)
+            # self.map_data = self.tuyastatus.get("121")
+            # self.erro_msg? = self.tuyastatus.get("124")
+            if self.robovac_supported & RoboVacEntityFeature.CONSUMABLES:
+                for CONSUMABLE_CODE in TUYA_CONSUMABLES_CODES:
+                    if (
+                        CONSUMABLE_CODE in self.tuyastatus
+                        and self.tuyastatus.get(CONSUMABLE_CODE) is not None
+                    ):
+                        self._attr_consumables = ast.literal_eval(
+                            base64.b64decode(
+                                self.tuyastatus.get(CONSUMABLE_CODE)
+                            ).decode("ascii")
+                        )["consumable"]["duration"]
+        except TuyaException as e:
+            self.update_failures += 1
+            _LOGGER.debug("Update errored. Current failure count: {}. Reason: {}".format(self.update_failures, e))
+            if self.update_failures == UPDATE_RETRIES:
+                self.update_failures = 0
+                self.error_code = "CONNECTION_FAILED"
+                raise e
 
     async def async_locate(self, **kwargs):
         """Locate the vacuum cleaner."""

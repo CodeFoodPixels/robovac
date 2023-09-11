@@ -722,8 +722,8 @@ class TuyaDevice:
         self.last_pong = time.time()
 
     async def async_update_state(self, state_message, _):
+        _LOGGER.info("Received updated state {}: {}").format(self, self._dps)
         self._dps.update(state_message.payload["dps"])
-        _LOGGER.info("Received updated state {}: {}".format(self, self._dps))
 
     @property
     def state(self):
@@ -757,15 +757,16 @@ class TuyaDevice:
         except Exception as e:
             if retries == 0:
                 if isinstance(e, socket.error):
-                    _LOGGER.error("Connection to {} failed: {}".format(self, e))
-                    self._dps["106"] = "CONNECTION_FAILED"
                     asyncio.ensure_future(self.async_disconnect())
+                    raise ConnectionException(
+                        "Connection to {} failed: {}".format(self, e)
+                    )
                 elif isinstance(e, asyncio.IncompleteReadError):
-                    _LOGGER.error("Incomplete read from: {} : {}".format(self, e))
+                    raise InvalidMessage(
+                        "Incomplete read from: {} : {}".format(self, e)
+                    )
                 else:
-                    _LOGGER.error("Failed to send data to {}".format(self))
-
-                return
+                    raise TuyaException("Failed to send data to {}".format(self))
 
             if isinstance(e, socket.error):
                 _LOGGER.debug(
@@ -775,8 +776,8 @@ class TuyaDevice:
                 )
             elif isinstance(e, asyncio.IncompleteReadError):
                 _LOGGER.debug(
-                    "Retrying send due to error.Incomplete read from: {} : {}".format(
-                        self, e
+                    "Retrying send due to error. Incomplete read from: {} : {}. Partial data recieved: {}".format(
+                        self, e, e.partial
                     )
                 )
             else:
