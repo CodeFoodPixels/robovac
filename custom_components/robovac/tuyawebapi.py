@@ -232,12 +232,12 @@ class TuyaAPISession:
 
     def list_homes(self):
         return self._request(action="tuya.m.location.list", version="2.1")
-
-    def list_devices(self, home_id: str):
+    
+    def get_device(self, devId):
         return self._request(
-            action="tuya.m.my.group.device.list",
+            action="tuya.m.device.get",
             version="1.0",
-            query_params={"gid": home_id},
+            data={"devId": devId}
         )
 
     def getCountryCode(self, region_code):

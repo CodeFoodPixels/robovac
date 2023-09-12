@@ -93,45 +93,37 @@ def get_eufy_vacuums(self):
     ]
     self[CONF_TIME_ZONE] = user_response["user_info"]["timezone"]
 
-    items = device_response["items"]
-    allvacs = {}
-    for item in items:
-        if item["device"]["product"]["appliance"] == "Cleaning":
-            vac_details = {
-                CONF_ID: item["device"]["id"],
-                CONF_MODEL: item["device"]["product"]["product_code"],
-                CONF_NAME: item["device"]["alias_name"],
-                CONF_DESCRIPTION: item["device"]["name"],
-                CONF_MAC: item["device"]["wifi"]["mac"],
-                CONF_IP_ADDRESS: "",
-                CONF_AUTODISCOVERY: True,
-            }
-            allvacs[item["device"]["id"]] = vac_details
-
     tuya_client = TuyaAPISession(
         username="eh-" + self[CONF_CLIENT_ID],
         region=self[CONF_REGION],
         timezone=self[CONF_TIME_ZONE],
     )
 
+    items = device_response["items"]
     self[CONF_VACS] = {}
-    for home in tuya_client.list_homes():
-        for device in tuya_client.list_devices(home["groupId"]):
-            if device["devId"] not in allvacs:
-                _LOGGER.debug("Vacuum {} found on Tuya, but not on Eufy. Skipping.".format(device["devId"]))
-                continue
+    for item in items:
+        if item["device"]["product"]["appliance"] == "Cleaning":
+            try:
+                device = tuya_client.get_device(item["device"]["id"])
+                _LOGGER.debug("Robovac schema: {}".format(device["schema"]))
 
-            if "localKey" not in device or not device["localKey"]:
-                _LOGGER.error("Local key missing for vacuum {} ({}) in data from Tuya. Skipping.".format(allvacs[device["devId"]][CONF_NAME], device["devId"]))
-                continue
-
-            allvacs[device["devId"]][CONF_ACCESS_TOKEN] = device["localKey"]
-            allvacs[device["devId"]][CONF_LOCATION] = home["groupId"]
-            self[CONF_VACS][device["devId"]] = allvacs[device["devId"]]
-
-    for vacuum_id in allvacs:
-        if vacuum_id not in self[CONF_VACS]:
-            _LOGGER.error("Vacuum {} ({}) found on Eufy, but not on Tuya. Vacuum will not be added.".format(allvacs[vacuum_id][CONF_NAME], vacuum_id))
+                vac_details = {
+                    CONF_ID: item["device"]["id"],
+                    CONF_MODEL: item["device"]["product"]["product_code"],
+                    CONF_NAME: item["device"]["alias_name"],
+                    CONF_DESCRIPTION: item["device"]["name"],
+                    CONF_MAC: item["device"]["wifi"]["mac"],
+                    CONF_IP_ADDRESS: "",
+                    CONF_AUTODISCOVERY: True,
+                    CONF_ACCESS_TOKEN: device["localKey"],
+                }
+                self[CONF_VACS][item["device"]["id"]] = vac_details
+            except:
+                _LOGGER.debug(
+                    "Vacuum {} found on Eufy, but not on Tuya. Skipping.".format(
+                        item["device"]["id"]
+                    )
+                )
 
     return response
 
@@ -186,6 +178,7 @@ class CannotConnect(HomeAssistantError):
 
 class InvalidAuth(HomeAssistantError):
     """Error to indicate there is invalid auth."""
+
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handles options flow for the component."""
