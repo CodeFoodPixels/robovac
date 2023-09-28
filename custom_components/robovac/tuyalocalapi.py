@@ -347,6 +347,10 @@ class RequestResponseCommandMismatch(TuyaException):
     """The command in the response didn't match the one from the request."""
 
 
+class ResponseTimeoutException(TuyaException):
+    """Did not recieve a response to the request within the timeout"""
+
+
 class TuyaCipher:
     """Tuya cryptographic helpers."""
 
@@ -445,11 +449,11 @@ class Message:
             payload = b""
         self.payload = payload
         self.command = command
+        self.original_sequence = sequence
         if sequence is None:
-            # Use millisecond process time as the sequence number. Not ideal,
-            # but good for one month's continuous connection time though.
-            sequence = int(time.perf_counter() * 1000) & 0xFFFFFFFF
-        self.sequence = sequence
+            self.set_sequence()
+        else:
+            self.sequence = sequence
         self.encrypt = False
         self.device = None
         if encrypt_for is not None:
@@ -464,6 +468,9 @@ class Message:
             self.sequence,
             "<Device {}>".format(self.device) if self.device else None,
         )
+
+    def set_sequence(self):
+        self.sequence = int(time.perf_counter() * 1000) & 0xFFFFFFFF
 
     def hex(self):
         return self.bytes().hex()
@@ -496,7 +503,7 @@ class Message:
 
     __bytes__ = bytes
 
-    async def async_send(self, device):
+    async def async_send(self, device, retries=4):
         device._listeners[self.sequence] = asyncio.Semaphore(0)
         await device._async_send(self)
         try:
@@ -504,13 +511,24 @@ class Message:
                 device._listeners[self.sequence].acquire(), timeout=device.timeout
             )
         except:
+            del device._listeners[self.sequence]
+            if retries == 0:
+                raise ResponseTimeoutException(
+                    "Timed out waiting for response to sequence number {}".format(
+                        self.sequence
+                    )
+                )
+
             _LOGGER.debug(
-                "Timed out waiting for response to sequence number {}".format(
+                "Timed out waiting for response to sequence number {}. Retrying".format(
                     self.sequence
                 )
             )
-            del device._listeners[self.sequence]
-            raise
+
+            if self.original_sequence is None:
+                self.set_sequence()
+
+            return self.async_send(device, retries - 1)
 
         return device._listeners.pop(self.sequence)
 
@@ -734,9 +752,9 @@ class TuyaDevice:
             response_data = await self.reader.readuntil(MAGIC_SUFFIX_BYTES)
             message = Message.from_bytes(response_data, self.cipher)
         except InvalidMessage as e:
-            _LOGGER.error("Invalid message from {}: {}".format(self, e))
+            _LOGGER.debug("Invalid message from {}: {}".format(self, e))
         except MessageDecodeFailed as e:
-            _LOGGER.error("Failed to decrypt message from {}".format(self))
+            _LOGGER.debug("Failed to decrypt message from {}".format(self))
         else:
             _LOGGER.debug("Received message from {}: {}".format(self, message))
             if message.sequence in self._listeners:
