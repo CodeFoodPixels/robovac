@@ -24,12 +24,12 @@ from .const import CONF_VACS, DOMAIN
 
 from .tuyalocaldiscovery import TuyaLocalDiscovery
 
-PLATFORM = Platform.VACUUM
+PLATFORMS = [Platform.VACUUM, Platform.SENSOR]
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup(hass, entry) -> bool:
-    hass.data.setdefault(DOMAIN, {})
+    hass.data.setdefault(DOMAIN, {CONF_VACS:{}})
 
     async def update_device(device):
         entry = async_get_config_entry_for_device(hass, device["gwId"])
@@ -70,15 +70,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Eufy Robovac from a config entry."""
     entry.async_on_unload(entry.add_update_listener(update_listener))
 
-    await hass.config_entries.async_forward_entry_setup(entry, PLATFORM)
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    if unload_ok := await hass.config_entries.async_forward_entry_unload(
-        entry, PLATFORM
+    if unload_ok := await hass.config_entries.async_unload_platforms(
+        entry, PLATFORMS
     ):
         """Nothing"""
     return unload_ok

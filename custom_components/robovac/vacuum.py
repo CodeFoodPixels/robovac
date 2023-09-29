@@ -56,7 +56,7 @@ from homeassistant.const import (
 )
 
 from .tuyalocalapi import TuyaException
-from .const import CONF_VACS, DOMAIN
+from .const import CONF_VACS, DOMAIN, REFRESH_RATE
 
 from .errors import getErrorMessage
 from .robovac import (
@@ -84,7 +84,6 @@ ATTR_CONSUMABLES = "consumables"
 ATTR_MODE = "mode"
 
 _LOGGER = logging.getLogger(__name__)
-REFRESH_RATE = 20
 SCAN_INTERVAL = timedelta(seconds=REFRESH_RATE)
 UPDATE_RETRIES = 3
 
@@ -115,6 +114,7 @@ async def async_setup_entry(
     for item in vacuums:
         item = vacuums[item]
         entity = RoboVacEntity(item)
+        hass.data[DOMAIN][CONF_VACS][item[CONF_ID]] = entity
         async_add_entities([entity])
 
 

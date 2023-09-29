@@ -3,3 +3,4 @@
 DOMAIN = "robovac"
 CONF_VACS = "vacuums"
 CONF_AUTODISCOVERY = "autodiscovery"
+REFRESH_RATE = 20
