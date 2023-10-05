@@ -736,8 +736,9 @@ class TuyaDevice:
         await self.update_entity_state_cb()
 
     async def async_update_state(self, state_message, _=None):
-        _LOGGER.info("Received updated state {}: {}".format(self, self._dps))
-        self._dps.update(state_message.payload["dps"])
+        if state_message.payload and state_message.payload["dps"]:
+            self._dps.update(state_message.payload["dps"])
+            _LOGGER.info("Received updated state {}: {}".format(self, self._dps))
 
     @property
     def state(self):
