@@ -1,0 +1,14 @@
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    create-release:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version-file: ".nvmrc"
+            - run: npx semantic-release --dry-run
