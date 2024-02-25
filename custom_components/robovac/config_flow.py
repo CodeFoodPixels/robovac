@@ -153,8 +153,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors["base"] = "cannot_connect"
         except InvalidAuth:
             errors["base"] = "invalid_auth"
-        except Exception:  # pylint: disable=broad-except
-            _LOGGER.exception("Unexpected exception")
+        except Exception as e:  # pylint: disable=broad-except
+            _LOGGER.exception("Unexpected exception: {}".format(e))
             errors["base"] = "unknown"
         else:
             await self.async_set_unique_id(unique_id)

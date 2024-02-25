@@ -328,15 +328,13 @@ class RoboVacEntity(StateVacuumEntity):
             self.update_entity_values()
         except TuyaException as e:
             self.update_failures += 1
-            _LOGGER.debug(
-                "Update errored. Current failure count: {}. Reason: {}".format(
+            _LOGGER.warn(
+                "Update errored. Current update failure count: {}. Reason: {}".format(
                     self.update_failures, e
                 )
             )
-            if self.update_failures == UPDATE_RETRIES:
-                self.update_failures = 0
+            if self.update_failures >= UPDATE_RETRIES:
                 self.error_code = "CONNECTION_FAILED"
-                raise e
 
     async def pushed_update_handler(self):
         self.update_entity_values()
@@ -479,4 +477,4 @@ class RoboVacEntity(StateVacuumEntity):
             await self.vacuum.async_set({"124": base64_str})
 
     async def async_will_remove_from_hass(self):
-        await self.vacuum.async_disconnect()
+        await self.vacuum.async_disable()

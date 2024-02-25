@@ -1,0 +1,18 @@
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    create-release:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version-file: ".nvmrc"
+            - run: npm ci
+            - name: Release
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: npx semantic-release
