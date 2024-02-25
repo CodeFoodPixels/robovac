@@ -24,18 +24,18 @@ import warnings
 dynamic_requires = []
 
 setup(
-    name='robovac',
+    name="robovac",
     version="1.0",
-    author='Luke Bonaccorsi',
-    url='http://github.com/codefoodpixels/robovac',
+    author="Luke Morrigan",
+    url="http://github.com/codefoodpixels/robovac",
     packages=find_packages(),
     scripts=[],
-    description='Python API for controlling Eufy Robovac vacuum cleaners',
+    description="Python API for controlling Eufy Robovac vacuum cleaners",
     classifiers=[
-        'Development Status :: 4 - Beta',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: Apache Software License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
     ],
 )
