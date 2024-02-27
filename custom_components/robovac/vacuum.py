@@ -56,7 +56,7 @@ from homeassistant.const import (
 )
 
 from .tuyalocalapi import TuyaException
-from .const import CONF_VACS, DOMAIN, REFRESH_RATE
+from .const import CONF_VACS, DOMAIN, REFRESH_RATE, PING_RATE, TIMEOUT
 
 from .errors import getErrorMessage
 from .robovac import (
@@ -285,8 +285,8 @@ class RoboVacEntity(StateVacuumEntity):
                 device_id=self.unique_id,
                 host=self.ip_address,
                 local_key=self.access_token,
-                timeout=2,
-                ping_interval=REFRESH_RATE / 2,
+                timeout=TIMEOUT,
+                ping_interval=PING_RATE,
                 model_code=self.model_code[0:5],
                 update_entity_state=self.pushed_update_handler,
             )
