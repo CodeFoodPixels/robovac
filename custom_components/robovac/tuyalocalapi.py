@@ -721,7 +721,7 @@ class TuyaDevice:
         self._connected = True
 
         if self._ping_task is None:
-            self.ping_task = asyncio.create_task(self.async_ping(self.ping_interval))
+            self._ping_task = asyncio.create_task(self.async_ping(self.ping_interval))
 
         asyncio.create_task(self._async_handle_message())
 
@@ -780,7 +780,7 @@ class TuyaDevice:
             self._queue.append(message)
 
         await asyncio.sleep(ping_interval)
-        self.ping_task = asyncio.create_task(self.async_ping(self.ping_interval))
+        self._ping_task = asyncio.create_task(self.async_ping(self.ping_interval))
         if self.last_pong < self.last_ping:
             await self.async_disconnect()
 
