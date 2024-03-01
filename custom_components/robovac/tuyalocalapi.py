@@ -831,7 +831,8 @@ class TuyaDevice:
                 if self._connected:
                     _LOGGER.debug("Incomplete read")
             elif isinstance(e, ConnectionResetError):
-                _LOGGER.debug("Connection reset")
+                _LOGGER.debug("Connection reset: {}".format(e))
+                await self.async_disconnect()
 
         else:
             _LOGGER.debug("Received message from {}: {}".format(self, message))
