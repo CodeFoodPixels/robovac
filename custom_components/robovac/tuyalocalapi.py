@@ -741,6 +741,9 @@ class TuyaDevice:
         if self.writer is not None:
             self.writer.close()
 
+        if self.reader is not None and not self.reader.at_eof():
+            self.reader.feed_eof()
+
     async def async_get(self):
         payload = {"gwId": self.gateway_id, "devId": self.device_id}
         encrypt = False if self.version < (3, 3) else True
