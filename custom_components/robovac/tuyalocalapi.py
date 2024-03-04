@@ -46,6 +46,7 @@ import socket
 import struct
 import sys
 import time
+import traceback
 from typing import Callable, Coroutine
 
 from cryptography.hazmat.backends.openssl import backend as openssl_backend
@@ -835,7 +836,7 @@ class TuyaDevice:
                     self._LOGGER.debug("Incomplete read")
             elif isinstance(e, ConnectionResetError):
                 self._LOGGER.debug(
-                    "Connection reset: {}\n{}".format(e, e.__traceback__)
+                    "Connection reset: {}\n{}".format(e, traceback.format_exc())
                 )
                 await self.async_disconnect()
 
