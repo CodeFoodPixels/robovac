@@ -266,7 +266,15 @@ class RoboVacEntity(StateVacuumEntity):
 
         self._attr_supported_features = self.vacuum.getHomeAssistantFeatures()
         self._attr_robovac_supported = self.vacuum.getRoboVacFeatures()
-        self._attr_fan_speed_list = self.vacuum.getFanSpeeds()
+
+        fan_speeds = self.vacuum.getFanSpeeds()
+        self.fan_speed_map = {}
+
+        for speed in fan_speeds:
+            self.fan_speed_map[friendly_text(speed)] = speed
+
+        self._attr_fan_speed_list = list(self.fan_speed_map.keys())
+        _LOGGER.debug(self._attr_fan_speed_list)
         self._tuya_command_codes = self.vacuum.getCommandCodes()
 
         self._attr_mode = None
@@ -285,19 +293,14 @@ class RoboVacEntity(StateVacuumEntity):
         self.tuya_state = None
         self.tuyastatus = None
 
+    async def async_added_to_hass(self):
+        await self.async_forced_update()
+
     async def async_update(self):
         """Synchronise state from the vacuum."""
-        if self.error_code == "UNSUPPORTED_MODEL":
-            return
-
-        if self.ip_address == "":
-            self.error_code = "IP_ADDRESS"
-            return
-
         try:
-            await self.vacuum.async_get()
+            await self.async_update_vacuum()
             self.update_failures = 0
-            self.update_entity_values()
         except TuyaException as e:
             self.update_failures += 1
             _LOGGER.warn(
@@ -307,6 +310,21 @@ class RoboVacEntity(StateVacuumEntity):
             )
             if self.update_failures >= UPDATE_RETRIES:
                 self.error_code = "CONNECTION_FAILED"
+
+    async def async_update_vacuum(self):
+        if self.error_code == "UNSUPPORTED_MODEL":
+            return
+
+        if self.ip_address == "":
+            self.error_code = "IP_ADDRESS"
+            return
+
+        await self.vacuum.async_get()
+        self.update_entity_values()
+
+    async def async_forced_update(self):
+        await self.async_update_vacuum()
+        self.async_write_ha_state()
 
     async def pushed_update_handler(self):
         self.update_entity_values()
@@ -327,8 +345,8 @@ class RoboVacEntity(StateVacuumEntity):
         self._attr_mode = self.tuyastatus.get(
             self._tuya_command_codes[RobovacCommand.MODE]
         )
-        self._attr_fan_speed = self.tuyastatus.get(
-            self._tuya_command_codes[RobovacCommand.FAN_SPEED]
+        self._attr_fan_speed = friendly_text(
+            self.tuyastatus.get(self._tuya_command_codes[RobovacCommand.FAN_SPEED], "")
         )
 
         if self.robovac_supported & RoboVacEntityFeature.CLEANING_AREA:
@@ -414,7 +432,11 @@ class RoboVacEntity(StateVacuumEntity):
         """Set fan speed."""
         _LOGGER.info("Fan Speed Selected")
         await self.vacuum.async_set(
-            {self._tuya_command_codes[RobovacCommand.FAN_SPEED]: fan_speed}
+            {
+                self._tuya_command_codes[RobovacCommand.FAN_SPEED]: self.fan_speed_map[
+                    fan_speed
+                ]
+            }
         )
 
     async def async_send_command(
@@ -461,3 +483,9 @@ class RoboVacEntity(StateVacuumEntity):
 
     async def async_will_remove_from_hass(self):
         await self.vacuum.async_disable()
+
+
+def friendly_text(input):
+    return " ".join(
+        word[0].upper() + word[1:] for word in input.replace("_", " ").split()
+    )
