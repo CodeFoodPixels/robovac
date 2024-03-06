@@ -29,7 +29,6 @@ from enum import IntEnum, StrEnum
 from homeassistant.loader import bind_hass
 from homeassistant.components.vacuum import (
     StateVacuumEntity,
-    VacuumEntityFeature,
     STATE_CLEANING,
     STATE_DOCKED,
     STATE_ERROR,
@@ -55,15 +54,15 @@ from homeassistant.const import (
     STATE_UNAVAILABLE,
 )
 
+from .vacuums.base import RoboVacEntityFeature, RobovacCommand
+
 from .tuyalocalapi import TuyaException
 from .const import CONF_VACS, DOMAIN, REFRESH_RATE, PING_RATE, TIMEOUT
 
 from .errors import getErrorMessage
 from .robovac import (
-    SUPPORTED_ROBOVAC_MODELS,
     ModelNotSupportedException,
     RoboVac,
-    RoboVacEntityFeature,
 )
 
 from homeassistant.const import ATTR_BATTERY_LEVEL
@@ -86,34 +85,6 @@ ATTR_MODE = "mode"
 _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(seconds=REFRESH_RATE)
 UPDATE_RETRIES = 3
-
-
-class TUYA_CODES(StrEnum):
-    MODE = "5"
-    STATE = "15"
-    # FAN_SPEED = "102"
-    FAN_SPEED = "130"
-    BATTERY_LEVEL = "104"
-    ERROR_CODE = "106"
-    CLEANING_TIME = "109"
-    CLEANING_AREA = "110"
-    DO_NOT_DISTURB = "107"
-    DO_NOT_DISTURB2 = "139"
-    BOOST_IQ = "118"
-    AUTO_RETURN = "135"
-    RETURN_HOME = "101"  # boolean
-    A_111 = "111"  # 65?
-    A_122 = "122"  # continue
-    A_131 = "131"  # false
-    A_137 = "137"  # 0
-    HARDWARE_CODE = "115"  # decoded
-    A_112 = "112"  # decoded clean record?
-    A_113 = "113"  # decoded
-    CLEAN_STATISTIC = "114"  # decoded
-    MULTI_MAPS = "117"  # decoded
-
-
-TUYA_CONSUMABLES_CODES = ["142", "116"]
 
 
 async def async_setup_entry(
@@ -296,6 +267,7 @@ class RoboVacEntity(StateVacuumEntity):
         self._attr_supported_features = self.vacuum.getHomeAssistantFeatures()
         self._attr_robovac_supported = self.vacuum.getRoboVacFeatures()
         self._attr_fan_speed_list = self.vacuum.getFanSpeeds()
+        self._tuya_command_codes = self.vacuum.getCommandCodes()
 
         self._attr_mode = None
         self._attr_consumables = None
@@ -343,77 +315,90 @@ class RoboVacEntity(StateVacuumEntity):
     def update_entity_values(self):
         self.tuyastatus = self.vacuum._dps
 
-        # for 15C
-        self._attr_battery_level = self.tuyastatus.get(TUYA_CODES.BATTERY_LEVEL)
-        self.tuya_state = self.tuyastatus.get(TUYA_CODES.STATE)
-        self.error_code = self.tuyastatus.get(TUYA_CODES.ERROR_CODE)
-        self._attr_mode = self.tuyastatus.get(TUYA_CODES.MODE)
-        self._attr_fan_speed = self.tuyastatus.get(TUYA_CODES.FAN_SPEED)
-        if self.fan_speed == "No_suction":
-            self._attr_fan_speed = "No Suction"
-        elif self.fan_speed == "Boost_IQ":
-            self._attr_fan_speed = "Boost IQ"
-        elif self.fan_speed == "Quiet":
-            self._attr_fan_speed = "Pure"
-        # for G30
-        self._attr_cleaning_area = self.tuyastatus.get(TUYA_CODES.CLEANING_AREA)
-        self._attr_cleaning_time = self.tuyastatus.get(TUYA_CODES.CLEANING_TIME)
-        self._attr_auto_return = self.tuyastatus.get(TUYA_CODES.AUTO_RETURN)
-        self._attr_do_not_disturb = self.tuyastatus.get(TUYA_CODES.DO_NOT_DISTURB)
-        self._attr_boost_iq = self.tuyastatus.get(TUYA_CODES.BOOST_IQ)
-        # self.map_data = self.tuyastatus.get("121")
-        # self.erro_msg? = self.tuyastatus.get("124")
+        self._attr_battery_level = self.tuyastatus.get(
+            self._tuya_command_codes[RobovacCommand.BATTERY]
+        )
+        self.tuya_state = self.tuyastatus.get(
+            self._tuya_command_codes[RobovacCommand.STATUS]
+        )
+        self.error_code = self.tuyastatus.get(
+            self._tuya_command_codes[RobovacCommand.ERROR]
+        )
+        self._attr_mode = self.tuyastatus.get(
+            self._tuya_command_codes[RobovacCommand.MODE]
+        )
+        self._attr_fan_speed = self.tuyastatus.get(
+            self._tuya_command_codes[RobovacCommand.FAN_SPEED]
+        )
+
+        if self.robovac_supported & RoboVacEntityFeature.CLEANING_AREA:
+            self._attr_cleaning_area = self.tuyastatus.get(
+                self._tuya_command_codes[RobovacCommand.CLEANING_AREA]
+            )
+
+        if self.robovac_supported & RoboVacEntityFeature.CLEANING_TIME:
+            self._attr_cleaning_time = self.tuyastatus.get(
+                self._tuya_command_codes[RobovacCommand.CLEANING_TIME]
+            )
+
+        if self.robovac_supported & RoboVacEntityFeature.AUTO_RETURN:
+            self._attr_auto_return = self.tuyastatus.get(
+                self._tuya_command_codes[RobovacCommand.AUTO_RETURN]
+            )
+
+        if self.robovac_supported & RoboVacEntityFeature.DO_NOT_DISTURB:
+            self._attr_do_not_disturb = self.tuyastatus.get(
+                self._tuya_command_codes[RobovacCommand.DO_NOT_DISTURB]
+            )
+
+        if self.robovac_supported & RoboVacEntityFeature.BOOST_IQ:
+            self._attr_boost_iq = self.tuyastatus.get(
+                self._tuya_command_codes[RobovacCommand.BOOST_IQ]
+            )
+
         if self.robovac_supported & RoboVacEntityFeature.CONSUMABLES:
-            _LOGGER.debug("Support Consumables")
-            for CONSUMABLE_CODE in TUYA_CONSUMABLES_CODES:
-                _LOGGER.debug("Consumable code is: {}".format(CONSUMABLE_CODE))
+            consumables = ast.literal_eval(
+                base64.b64decode(
+                    self.tuyastatus.get(
+                        self._tuya_command_codes[RobovacCommand.CONSUMABLES]
+                    )
+                ).decode("ascii")
+            )
+            _LOGGER.debug("Consumables decoded value is: {}".format(consumables))
+            if "consumable" in consumables and "duration" in consumables["consumable"]:
                 _LOGGER.debug(
-                    "Consumables value is: {}".format(
-                        self.tuyastatus.get(CONSUMABLE_CODE)
+                    "Consumables encoded value is: {}".format(
+                        consumables["consumable"]["duration"]
                     )
                 )
-                if (
-                    CONSUMABLE_CODE in self.tuyastatus
-                    and self.tuyastatus.get(CONSUMABLE_CODE) is not None
-                ):
-                    consumables = ast.literal_eval(
-                        base64.b64decode(self.tuyastatus.get(CONSUMABLE_CODE)).decode(
-                            "ascii"
-                        )
-                    )
-                    _LOGGER.debug(
-                        "Consumables decoded value is: {}".format(consumables)
-                    )
-                    if (
-                        "consumable" in consumables
-                        and "duration" in consumables["consumable"]
-                    ):
-                        _LOGGER.debug(
-                            "Consumables encoded value is: {}".format(
-                                consumables["consumable"]["duration"]
-                            )
-                        )
-                        self._attr_consumables = consumables["consumable"]["duration"]
+                self._attr_consumables = consumables["consumable"]["duration"]
 
     async def async_locate(self, **kwargs):
         """Locate the vacuum cleaner."""
         _LOGGER.info("Locate Pressed")
-        if self.tuyastatus.get("103"):
-            await self.vacuum.async_set({"103": False})
+        code = self._tuya_command_codes[RobovacCommand.LOCATE]
+        if self.tuyastatus.get(code):
+            await self.vacuum.async_set({code: False})
         else:
-            await self.vacuum.async_set({"103": True})
+            await self.vacuum.async_set({code: True})
 
     async def async_return_to_base(self, **kwargs):
         """Set the vacuum cleaner to return to the dock."""
         _LOGGER.info("Return home Pressed")
-        await self.vacuum.async_set({"101": True})
+        await self.vacuum.async_set(
+            {self._tuya_command_codes[RobovacCommand.RETURN_HOME]: True}
+        )
 
     async def async_start(self, **kwargs):
         self._attr_mode = "auto"
-        await self.vacuum.async_set({"5": self.mode})
+        await self.vacuum.async_set(
+            {self._tuya_command_codes[RobovacCommand.MODE]: self.mode}
+        )
 
     async def async_pause(self, **kwargs):
-        await self.vacuum.async_set({"2": False})
+        await self.vacuum.async_set(
+            {self._tuya_command_codes[RobovacCommand.PAUSE]: False}
+        )
 
     async def async_stop(self, **kwargs):
         await self.async_return_to_base()
@@ -421,18 +406,16 @@ class RoboVacEntity(StateVacuumEntity):
     async def async_clean_spot(self, **kwargs):
         """Perform a spot clean-up."""
         _LOGGER.info("Spot Clean Pressed")
-        await self.vacuum.async_set({"5": "Spot"})
+        await self.vacuum.async_set(
+            {self._tuya_command_codes[RobovacCommand.MODE]: "Spot"}
+        )
 
     async def async_set_fan_speed(self, fan_speed, **kwargs):
         """Set fan speed."""
         _LOGGER.info("Fan Speed Selected")
-        if fan_speed == "No Suction":
-            fan_speed = "No_suction"
-        elif fan_speed == "Boost IQ":
-            fan_speed = "Boost_IQ"
-        elif fan_speed == "Pure":
-            fan_speed = "Quiet"
-        await self.vacuum.async_set({"130": fan_speed})
+        await self.vacuum.async_set(
+            {self._tuya_command_codes[RobovacCommand.FAN_SPEED]: fan_speed}
+        )
 
     async def async_send_command(
         self, command: str, params: dict | list | None = None, **kwargs
