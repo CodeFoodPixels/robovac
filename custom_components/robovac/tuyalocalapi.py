@@ -761,7 +761,7 @@ class TuyaDevice:
         message = Message(Message.GET_COMMAND, payload, encrypt=encrypt, device=self)
         self._queue.append(message)
         response = await self.async_recieve(message)
-        asyncio.create_task(self.async_update_state(response))
+        await self.async_update_state(response)
 
     async def async_set(self, dps):
         t = int(time.time())
@@ -903,9 +903,6 @@ class TuyaDevice:
             await self._async_send(message, retries=retries - 1)
 
     async def async_recieve(self, message):
-        if self._connected is False:
-            return
-
         if message.expect_response is True:
             try:
                 self._recieve_task = asyncio.create_task(
