@@ -84,7 +84,7 @@ const ROBOVAC_SERIES_FEATURES = {
 };
 
 const ROBOVAC_SERIES_FAN_SPEEDS = {
-    C: ["No_Suction", "Standard", "Boost_IQ", "Max"],
+    C: ["No_suction", "Standard", "Boost_IQ", "Max"],
     G: ["Standard", "Turbo", "Max", "Boost_IQ"],
     L: ["Quiet", "Standard", "Turbo", "Max"],
     X: ["Pure", "Standard", "Turbo", "Max"],
@@ -148,7 +148,7 @@ class ${model}:
     )
     robovac_features = ${robovac_features.join(" | ")}
     commands = {
-        RobovacCommand.PAUSE: 2,
+        RobovacCommand.START_PAUSE: 2,
         RobovacCommand.DIRECTION: {
             "code": 3,
             "values": ["forward", "back", "left", "right"],

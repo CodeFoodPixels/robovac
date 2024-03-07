@@ -17,7 +17,7 @@ class T2119:
     )
     robovac_features = RoboVacEntityFeature.EDGE | RoboVacEntityFeature.SMALL_ROOM
     commands = {
-        RobovacCommand.PAUSE: 2,
+        RobovacCommand.START_PAUSE: 2,
         RobovacCommand.DIRECTION: {
             "code": 3,
             "values": ["forward", "back", "left", "right"],
@@ -30,7 +30,7 @@ class T2119:
         RobovacCommand.RETURN_HOME: 101,
         RobovacCommand.FAN_SPEED: {
             "code": 102,
-            "values": ["No_Suction","Standard","Boost_IQ","Max"],
+            "values": ["No_suction","Standard","Boost_IQ","Max"],
         },
         RobovacCommand.LOCATE: 103,
         RobovacCommand.BATTERY: 104,

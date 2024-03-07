@@ -399,6 +399,7 @@ class RoboVacEntity(StateVacuumEntity):
             await self.vacuum.async_set({code: False})
         else:
             await self.vacuum.async_set({code: True})
+        asyncio.create_task(self.async_forced_update())
 
     async def async_return_to_base(self, **kwargs):
         """Set the vacuum cleaner to return to the dock."""
@@ -406,20 +407,23 @@ class RoboVacEntity(StateVacuumEntity):
         await self.vacuum.async_set(
             {self._tuya_command_codes[RobovacCommand.RETURN_HOME]: True}
         )
+        asyncio.create_task(self.async_forced_update())
 
     async def async_start(self, **kwargs):
-        self._attr_mode = "auto"
         await self.vacuum.async_set(
-            {self._tuya_command_codes[RobovacCommand.MODE]: self.mode}
+            {self._tuya_command_codes[RobovacCommand.START_PAUSE]: True}
         )
+        asyncio.create_task(self.async_forced_update())
 
     async def async_pause(self, **kwargs):
         await self.vacuum.async_set(
-            {self._tuya_command_codes[RobovacCommand.PAUSE]: False}
+            {self._tuya_command_codes[RobovacCommand.START_PAUSE]: False}
         )
+        asyncio.create_task(self.async_forced_update())
 
     async def async_stop(self, **kwargs):
         await self.async_return_to_base()
+        asyncio.create_task(self.async_forced_update())
 
     async def async_clean_spot(self, **kwargs):
         """Perform a spot clean-up."""
@@ -427,6 +431,7 @@ class RoboVacEntity(StateVacuumEntity):
         await self.vacuum.async_set(
             {self._tuya_command_codes[RobovacCommand.MODE]: "Spot"}
         )
+        asyncio.create_task(self.async_forced_update())
 
     async def async_set_fan_speed(self, fan_speed, **kwargs):
         """Set fan speed."""
@@ -438,6 +443,7 @@ class RoboVacEntity(StateVacuumEntity):
                 ]
             }
         )
+        asyncio.create_task(self.async_forced_update())
 
     async def async_send_command(
         self, command: str, params: dict | list | None = None, **kwargs
@@ -480,6 +486,7 @@ class RoboVacEntity(StateVacuumEntity):
             base64_str = base64.b64encode(json_str.encode("utf8")).decode("utf8")
             _LOGGER.info("roomClean call %s", json_str)
             await self.vacuum.async_set({"124": base64_str})
+        asyncio.create_task(self.async_forced_update())
 
     async def async_will_remove_from_hass(self):
         await self.vacuum.async_disable()
