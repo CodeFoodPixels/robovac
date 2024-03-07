@@ -18,7 +18,7 @@ class T2262:
     )
     robovac_features = RoboVacEntityFeature.CLEANING_TIME | RoboVacEntityFeature.CLEANING_AREA | RoboVacEntityFeature.DO_NOT_DISTURB | RoboVacEntityFeature.AUTO_RETURN | RoboVacEntityFeature.ROOM | RoboVacEntityFeature.ZONE | RoboVacEntityFeature.BOOST_IQ | RoboVacEntityFeature.MAP
     commands = {
-        RobovacCommand.PAUSE: 2,
+        RobovacCommand.START_PAUSE: 2,
         RobovacCommand.DIRECTION: {
             "code": 3,
             "values": ["forward", "back", "left", "right"],

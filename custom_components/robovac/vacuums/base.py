@@ -18,7 +18,7 @@ class RoboVacEntityFeature(IntEnum):
 
 
 class RobovacCommand(StrEnum):
-    PAUSE = "pause"
+    START_PAUSE = "start_pause"
     DIRECTION = "direction"
     MODE = "mode"
     STATUS = "status"
