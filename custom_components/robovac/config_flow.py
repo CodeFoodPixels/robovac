@@ -39,10 +39,17 @@ from homeassistant.const import (
     CONF_IP_ADDRESS,
     CONF_DESCRIPTION,
     CONF_MAC,
-    CONF_LOCATION,
     CONF_CLIENT_ID,
     CONF_REGION,
     CONF_TIME_ZONE,
+    CONF_COUNTRY_CODE,
+)
+
+from .countries import (
+    get_phone_code_by_country_code,
+    get_phone_code_by_region,
+    get_region_by_country_code,
+    get_region_by_phone_code,
 )
 
 from .const import CONF_AUTODISCOVERY, DOMAIN, CONF_VACS
@@ -88,15 +95,41 @@ def get_eufy_vacuums(self):
     settings_response = response.json()
 
     self[CONF_CLIENT_ID] = user_response["user_info"]["id"]
-    self[CONF_REGION] = settings_response["setting"]["home_setting"]["tuya_home"][
-        "tuya_region_code"
-    ]
+    if (
+        "tuya_home" in settings_response["setting"]["home_setting"]
+        and "tuya_region_code"
+        in settings_response["setting"]["home_setting"]["tuya_home"]
+    ):
+        self[CONF_REGION] = settings_response["setting"]["home_setting"]["tuya_home"][
+            "tuya_region_code"
+        ]
+        if user_response["user_info"]["phone_code"]:
+            self[CONF_COUNTRY_CODE] = user_response["user_info"]["phone_code"]
+        else:
+            self[CONF_COUNTRY_CODE] = get_phone_code_by_region(self[CONF_REGION])
+    elif user_response["user_info"]["phone_code"]:
+        self[CONF_REGION] = get_region_by_phone_code(
+            user_response["user_info"]["phone_code"]
+        )
+        self[CONF_COUNTRY_CODE] = user_response["user_info"]["phone_code"]
+    elif user_response["user_info"]["country"]:
+        self[CONF_REGION] = get_region_by_country_code(
+            user_response["user_info"]["country"]
+        )
+        self[CONF_COUNTRY_CODE] = get_phone_code_by_country_code(
+            user_response["user_info"]["country"]
+        )
+    else:
+        self[CONF_REGION] = "EU"
+        self[CONF_COUNTRY_CODE] = "44"
+
     self[CONF_TIME_ZONE] = user_response["user_info"]["timezone"]
 
     tuya_client = TuyaAPISession(
         username="eh-" + self[CONF_CLIENT_ID],
         region=self[CONF_REGION],
         timezone=self[CONF_TIME_ZONE],
+        phone_code=self[CONF_COUNTRY_CODE],
     )
 
     items = device_response["items"]

@@ -46,6 +46,7 @@ import socket
 import struct
 import sys
 import time
+import traceback
 from typing import Callable, Coroutine
 
 from cryptography.hazmat.backends.openssl import backend as openssl_backend
@@ -527,7 +528,7 @@ class Message:
         await self.device._async_send(self)
 
     @classmethod
-    def from_bytes(cls, data, cipher=None):
+    def from_bytes(cls, device, data, cipher=None):
         try:
             prefix, sequence, command, payload_size = struct.unpack_from(
                 MESSAGE_PREFIX_FORMAT, data
@@ -584,15 +585,15 @@ class Message:
             try:
                 payload_text = payload_data.decode("utf8")
             except UnicodeDecodeError as e:
-                _LOGGER.debug(payload_data.hex())
-                _LOGGER.error(e)
+                device._LOGGER.debug(payload_data.hex())
+                device._LOGGER.error(e)
                 raise MessageDecodeFailed() from e
             try:
                 payload = json.loads(payload_text)
             except json.decoder.JSONDecodeError as e:
                 # data may be encrypted
-                _LOGGER.debug(payload_data.hex())
-                _LOGGER.error(e)
+                device._LOGGER.debug(payload_data.hex())
+                device._LOGGER.error(e)
                 raise MessageDecodeFailed() from e
 
         return cls(command, payload, sequence)
@@ -614,6 +615,7 @@ class TuyaDevice:
         version=(3, 3),
     ):
         """Initialize the device."""
+        self._LOGGER = _LOGGER.getChild(device_id)
         self.device_id = device_id
         self.host = host
         self.port = port
@@ -668,7 +670,7 @@ class TuyaDevice:
         self.clean_queue()
 
         if len(self._queue) > 0:
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "Processing queue. Current length: {}".format(len(self._queue))
             )
             try:
@@ -679,14 +681,16 @@ class TuyaDevice:
                 self._backoff = False
             except Exception as e:
                 self._failures += 1
-                _LOGGER.debug("{} failures. Most recent: {}".format(self._failures, e))
+                self._LOGGER.debug(
+                    "{} failures. Most recent: {}".format(self._failures, e)
+                )
                 if self._failures > 3:
                     self._backoff = True
                     self._queue_interval = min(
                         INITIAL_BACKOFF * (BACKOFF_MULTIPLIER ** (self._failures - 4)),
                         600,
                     )
-                    _LOGGER.warn(
+                    self._LOGGER.warn(
                         "{} failures, backing off for {} seconds".format(
                             self._failures, self._queue_interval
                         )
@@ -709,7 +713,7 @@ class TuyaDevice:
 
         sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
         sock.settimeout(self.timeout)
-        _LOGGER.debug("Connecting to {}".format(self))
+        self._LOGGER.debug("Connecting to {}".format(self))
         try:
             sock.connect((self.host, self.port))
         except (socket.timeout, TimeoutError) as e:
@@ -734,12 +738,15 @@ class TuyaDevice:
         if self._connected is False:
             return
 
-        _LOGGER.debug("Disconnected from {}".format(self))
+        self._LOGGER.debug("Disconnected from {}".format(self))
         self._connected = False
         self.last_pong = 0
 
         if self.writer is not None:
             self.writer.close()
+
+        if self.reader is not None and not self.reader.at_eof():
+            self.reader.feed_eof()
 
     async def async_get(self):
         payload = {"gwId": self.gateway_id, "devId": self.device_id}
@@ -766,7 +773,7 @@ class TuyaDevice:
             return
 
         if self._backoff is True:
-            _LOGGER.debug("Currently in backoff, not adding ping to queue")
+            self._LOGGER.debug("Currently in backoff, not adding ping to queue")
         else:
             self.last_ping = time.time()
             encrypt = False if self.version < (3, 3) else True
@@ -798,7 +805,7 @@ class TuyaDevice:
             and state_message.payload["dps"]
         ):
             self._dps.update(state_message.payload["dps"])
-            _LOGGER.debug("Received updated state {}: {}".format(self, self._dps))
+            self._LOGGER.debug("Received updated state {}: {}".format(self, self._dps))
 
     @property
     def state(self):
@@ -818,20 +825,23 @@ class TuyaDevice:
             )
             await self._response_task
             response_data = self._response_task.result()
-            message = Message.from_bytes(response_data, self.cipher)
+            message = Message.from_bytes(self, response_data, self.cipher)
         except Exception as e:
             if isinstance(e, InvalidMessage):
-                _LOGGER.debug("Invalid message from {}: {}".format(self, e))
+                self._LOGGER.debug("Invalid message from {}: {}".format(self, e))
             elif isinstance(e, MessageDecodeFailed):
-                _LOGGER.debug("Failed to decrypt message from {}".format(self))
+                self._LOGGER.debug("Failed to decrypt message from {}".format(self))
             elif isinstance(e, asyncio.IncompleteReadError):
                 if self._connected:
-                    _LOGGER.debug("Incomplete read")
+                    self._LOGGER.debug("Incomplete read")
             elif isinstance(e, ConnectionResetError):
-                _LOGGER.debug("Connection reset")
+                self._LOGGER.debug(
+                    "Connection reset: {}\n{}".format(e, traceback.format_exc())
+                )
+                await self.async_disconnect()
 
         else:
-            _LOGGER.debug("Received message from {}: {}".format(self, message))
+            self._LOGGER.debug("Received message from {}: {}".format(self, message))
             if message.sequence in self._listeners:
                 sem = self._listeners[message.sequence]
                 if isinstance(sem, asyncio.Semaphore):
@@ -846,7 +856,7 @@ class TuyaDevice:
         asyncio.create_task(self._async_handle_message())
 
     async def _async_send(self, message, retries=2):
-        _LOGGER.debug("Sending to {}: {}".format(self, message))
+        self._LOGGER.debug("Sending to {}: {}".format(self, message))
         try:
             await self.async_connect()
             self.writer.write(message.bytes())
@@ -867,19 +877,19 @@ class TuyaDevice:
                     raise TuyaException("Failed to send data to {}".format(self))
 
             if isinstance(e, socket.error):
-                _LOGGER.debug(
+                self._LOGGER.debug(
                     "Retrying send due to error. Connection to {} failed: {}".format(
                         self, e
                     )
                 )
             elif isinstance(e, asyncio.IncompleteReadError):
-                _LOGGER.debug(
+                self._LOGGER.debug(
                     "Retrying send due to error. Incomplete read from: {} : {}. Partial data recieved: {}".format(
                         self, e, e.partial
                     )
                 )
             else:
-                _LOGGER.debug(
+                self._LOGGER.debug(
                     "Retrying send due to error. Failed to send data to {}".format(self)
                 )
             await asyncio.sleep(0.25)
