@@ -209,7 +209,7 @@ def get_region_by_phone_code(phone_code):
 
 
 def get_phone_code_by_region(region):
-    country = next((item for item in COUNTRIES if item["region"] == region), None)
+    country = next((item for item in COUNTRIES if item["tuya_region"] == region), None)
 
     if country is None:
         return "44"
