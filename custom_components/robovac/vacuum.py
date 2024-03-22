@@ -89,28 +89,16 @@ UPDATE_RETRIES = 3
 
 
 class TUYA_CODES(StrEnum):
-    MODE = "5"
-    STATE = "15"
-    # FAN_SPEED = "102"
-    FAN_SPEED = "130"
     BATTERY_LEVEL = "104"
+    STATE = "15"
     ERROR_CODE = "106"
-    CLEANING_TIME = "109"
+    MODE = "5"
+    FAN_SPEED = "102"
     CLEANING_AREA = "110"
-    DO_NOT_DISTURB = "107"
-    DO_NOT_DISTURB2 = "139"
-    BOOST_IQ = "118"
+    CLEANING_TIME = "109"
     AUTO_RETURN = "135"
-    RETURN_HOME = "101"  # boolean
-    A_111 = "111"  # 65?
-    A_122 = "122"  # continue
-    A_131 = "131"  # false
-    A_137 = "137"  # 0
-    HARDWARE_CODE = "115"  # decoded
-    A_112 = "112"  # decoded clean record?
-    A_113 = "113"  # decoded
-    CLEAN_STATISTIC = "114"  # decoded
-    MULTI_MAPS = "117"  # decoded
+    DO_NOT_DISTURB = "107"
+    BOOST_IQ = "118"
 
 
 TUYA_CONSUMABLES_CODES = ["142", "116"]
@@ -364,14 +352,7 @@ class RoboVacEntity(StateVacuumEntity):
         # self.map_data = self.tuyastatus.get("121")
         # self.erro_msg? = self.tuyastatus.get("124")
         if self.robovac_supported & RoboVacEntityFeature.CONSUMABLES:
-            _LOGGER.debug("Support Consumables")
             for CONSUMABLE_CODE in TUYA_CONSUMABLES_CODES:
-                _LOGGER.debug("Consumable code is: {}".format(CONSUMABLE_CODE))
-                _LOGGER.debug(
-                    "Consumables value is: {}".format(
-                        self.tuyastatus.get(CONSUMABLE_CODE)
-                    )
-                )
                 if (
                     CONSUMABLE_CODE in self.tuyastatus
                     and self.tuyastatus.get(CONSUMABLE_CODE) is not None
@@ -381,18 +362,10 @@ class RoboVacEntity(StateVacuumEntity):
                             "ascii"
                         )
                     )
-                    _LOGGER.debug(
-                        "Consumables decoded value is: {}".format(consumables)
-                    )
                     if (
                         "consumable" in consumables
                         and "duration" in consumables["consumable"]
                     ):
-                        _LOGGER.debug(
-                            "Consumables encoded value is: {}".format(
-                                consumables["consumable"]["duration"]
-                            )
-                        )
                         self._attr_consumables = consumables["consumable"]["duration"]
 
     async def async_locate(self, **kwargs):
@@ -432,7 +405,7 @@ class RoboVacEntity(StateVacuumEntity):
             fan_speed = "Boost_IQ"
         elif fan_speed == "Pure":
             fan_speed = "Quiet"
-        await self.vacuum.async_set({"130": fan_speed})
+        await self.vacuum.async_set({"102": fan_speed})
 
     async def async_send_command(
         self, command: str, params: dict | list | None = None, **kwargs
