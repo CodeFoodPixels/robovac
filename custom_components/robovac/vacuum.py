@@ -89,28 +89,16 @@ UPDATE_RETRIES = 3
 
 
 class TUYA_CODES(StrEnum):
-    MODE = "5"
-    STATE = "15"
-    # FAN_SPEED = "102"
-    FAN_SPEED = "130"
     BATTERY_LEVEL = "104"
+    STATE = "15"
     ERROR_CODE = "106"
-    CLEANING_TIME = "109"
+    MODE = "5"
+    FAN_SPEED = "102"
     CLEANING_AREA = "110"
-    DO_NOT_DISTURB = "107"
-    DO_NOT_DISTURB2 = "139"
-    BOOST_IQ = "118"
+    CLEANING_TIME = "109"
     AUTO_RETURN = "135"
-    RETURN_HOME = "101"  # boolean
-    A_111 = "111"  # 65?
-    A_122 = "122"  # continue
-    A_131 = "131"  # false
-    A_137 = "137"  # 0
-    HARDWARE_CODE = "115"  # decoded
-    A_112 = "112"  # decoded clean record?
-    A_113 = "113"  # decoded
-    CLEAN_STATISTIC = "114"  # decoded
-    MULTI_MAPS = "117"  # decoded
+    DO_NOT_DISTURB = "107"
+    BOOST_IQ = "118"
 
 
 TUYA_CONSUMABLES_CODES = ["142", "116"]
@@ -384,15 +372,7 @@ class RoboVacEntity(StateVacuumEntity):
                     _LOGGER.debug(
                         "Consumables decoded value is: {}".format(consumables)
                     )
-                    if (
-                        "consumable" in consumables
-                        and "duration" in consumables["consumable"]
-                    ):
-                        _LOGGER.debug(
-                            "Consumables encoded value is: {}".format(
-                                consumables["consumable"]["duration"]
-                            )
-                        )
+                    if "consumable" in consumables and "duration" in consumables:
                         self._attr_consumables = consumables["consumable"]["duration"]
 
     async def async_locate(self, **kwargs):
