@@ -46,11 +46,11 @@ class T2267:
         RobovacCommand.LOCATE: 160,
         RobovacCommand.BATTERY: 163,
         RobovacCommand.ERROR: 177,
+        RobovacCommand.DO_NOT_DISTURB: 157,
+        RobovacCommand.BOOST_IQ: 159,
+        RobovacCommand.CONSUMABLES: 168,
         # These commands need codes adding
         # RobovacCommand.CLEANING_AREA: 0,
         # RobovacCommand.CLEANING_TIME: 0,
         # RobovacCommand.AUTO_RETURN: 0,
-        # RobovacCommand.DO_NOT_DISTURB: 157,
-        # RobovacCommand.BOOST_IQ: 159,
-        # RobovacCommand.CONSUMABLES: 168,
     }
