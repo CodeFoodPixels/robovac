@@ -357,13 +357,11 @@ class RoboVacEntity(StateVacuumEntity):
                     CONSUMABLE_CODE in self.tuyastatus
                     and self.tuyastatus.get(CONSUMABLE_CODE) is not None
                 ):
-                    consumables = ast.literal_eval(
+                    self._attr_consumables = ast.literal_eval(
                         base64.b64decode(self.tuyastatus.get(CONSUMABLE_CODE)).decode(
                             "ascii"
                         )
-                    )
-                    if "consumable" in consumables and "duration" in consumables:
-                        self._attr_consumables = consumables["consumable"]["duration"]
+                    )["consumable"]["duration"]
 
     async def async_locate(self, **kwargs):
         """Locate the vacuum cleaner."""
