@@ -352,14 +352,7 @@ class RoboVacEntity(StateVacuumEntity):
         # self.map_data = self.tuyastatus.get("121")
         # self.erro_msg? = self.tuyastatus.get("124")
         if self.robovac_supported & RoboVacEntityFeature.CONSUMABLES:
-            _LOGGER.debug("Support Consumables")
             for CONSUMABLE_CODE in TUYA_CONSUMABLES_CODES:
-                _LOGGER.debug("Consumable code is: {}".format(CONSUMABLE_CODE))
-                _LOGGER.debug(
-                    "Consumables value is: {}".format(
-                        self.tuyastatus.get(CONSUMABLE_CODE)
-                    )
-                )
                 if (
                     CONSUMABLE_CODE in self.tuyastatus
                     and self.tuyastatus.get(CONSUMABLE_CODE) is not None
@@ -368,9 +361,6 @@ class RoboVacEntity(StateVacuumEntity):
                         base64.b64decode(self.tuyastatus.get(CONSUMABLE_CODE)).decode(
                             "ascii"
                         )
-                    )
-                    _LOGGER.debug(
-                        "Consumables decoded value is: {}".format(consumables)
                     )
                     if "consumable" in consumables and "duration" in consumables:
                         self._attr_consumables = consumables["consumable"]["duration"]
