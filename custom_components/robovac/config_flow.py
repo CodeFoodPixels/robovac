@@ -14,6 +14,7 @@
 
 """Config flow for Eufy Robovac integration."""
 from __future__ import annotations
+import json
 
 import logging
 from typing import Any, Optional
@@ -138,7 +139,6 @@ def get_eufy_vacuums(self):
         if item["device"]["product"]["appliance"] == "Cleaning":
             try:
                 device = tuya_client.get_device(item["device"]["id"])
-                _LOGGER.debug("Robovac schema: {}".format(device["schema"]))
 
                 vac_details = {
                     CONF_ID: item["device"]["id"],
@@ -153,10 +153,11 @@ def get_eufy_vacuums(self):
                 self[CONF_VACS][item["device"]["id"]] = vac_details
             except:
                 _LOGGER.debug(
-                    "Vacuum {} found on Eufy, but not on Tuya. Skipping.".format(
+                    "Skipping vacuum {}: found on Eufy but not on Tuya. Eufy details:".format(
                         item["device"]["id"]
                     )
                 )
+                _LOGGER.debug(json.dumps(item["device"], indent=2))
 
     return response
 
