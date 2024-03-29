@@ -39,7 +39,7 @@ class EufyLogon:
         return requests.request("GET", setting_url, headers=eufyheaders, timeout=1.5)
 
     def get_device_info(self, url, userid, token):
-        device_url = url + "/v1/device/list/devices-and-groups"
+        device_url = url + "/v1/device/v2"
         eufyheaders["token"] = token
         eufyheaders["id"] = userid
         return requests.request("GET", device_url, headers=eufyheaders)
