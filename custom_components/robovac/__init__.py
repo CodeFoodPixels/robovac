@@ -34,7 +34,7 @@ async def async_setup(hass, entry) -> bool:
     async def update_device(device):
         entry = async_get_config_entry_for_device(hass, device["gwId"])
 
-        if entry == None:
+        if entry is None:
             return
 
         if not entry.state.recoverable:

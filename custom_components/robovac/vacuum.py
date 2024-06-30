@@ -100,6 +100,11 @@ class TUYA_CODES(StrEnum):
     DO_NOT_DISTURB = "107"
     BOOST_IQ = "118"
 
+class TUYA_CODES_V2(StrEnum):
+    BATTERY_LEVEL = "163"
+    VACUUM_MODE = "158"
+    MOP_MODE = "10"
+
 
 TUYA_CONSUMABLES_CODES = ["142", "116"]
 
@@ -332,7 +337,7 @@ class RoboVacEntity(StateVacuumEntity):
         self.tuyastatus = self.vacuum._dps
 
         # for 15C
-        self._attr_battery_level = self.tuyastatus.get(TUYA_CODES.BATTERY_LEVEL)
+        self._attr_battery_level = self.tuyastatus.get(TUYA_CODES.BATTERY_LEVEL) or self.tuyastatus.get(TUYA_CODES_V2.BATTERY_LEVEL)
         self.tuya_state = self.tuyastatus.get(TUYA_CODES.STATE)
         self.error_code = self.tuyastatus.get(TUYA_CODES.ERROR_CODE)
         self._attr_mode = self.tuyastatus.get(TUYA_CODES.MODE)

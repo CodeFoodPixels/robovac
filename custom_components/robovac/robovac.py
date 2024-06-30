@@ -17,6 +17,7 @@ class RoboVacEntityFeature(IntEnum):
     ZONE = 256
     MAP = 512
     BOOST_IQ = 1024
+    MOP = 2048
 
 
 ROBOVAC_SERIES = {
@@ -89,7 +90,7 @@ ROBOVAC_SERIES_FEATURES = {
     | RoboVacEntityFeature.AUTO_RETURN
     | RoboVacEntityFeature.ROOM
     | RoboVacEntityFeature.ZONE
-    | RoboVacEntityFeature.BOOST_IQ,
+    | RoboVacEntityFeature.MOP,
     "X": RoboVacEntityFeature.CLEANING_TIME
     | RoboVacEntityFeature.CLEANING_AREA
     | RoboVacEntityFeature.DO_NOT_DISTURB
@@ -106,6 +107,11 @@ ROBOVAC_SERIES_FAN_SPEEDS = {
     "R": ["Quiet", "Standard", "Turbo", "Max"],
     "X": ["Pure", "Standard", "Turbo", "Max"],
 }
+
+ROBOVAC_MOP_SETTINGS = {
+    "R": ["low", "middle", "high"],
+}
+
 
 
 SUPPORTED_ROBOVAC_MODELS = list(

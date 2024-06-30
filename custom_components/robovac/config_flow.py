@@ -28,7 +28,6 @@ from homeassistant.core import callback
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers.selector import selector
 
 from homeassistant.const import (
     CONF_ACCESS_TOKEN,

@@ -580,7 +580,7 @@ class Message:
         if payload_data:
             try:
                 payload_data = cipher.decrypt(command, payload_data)
-            except ValueError as e:
+            except ValueError:
                 pass
             try:
                 payload_text = payload_data.decode("utf8")
