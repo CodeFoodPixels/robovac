@@ -29,6 +29,8 @@ from .T2192 import T2192
 from .T2193 import T2193
 from .T2194 import T2194
 from .T2267 import T2267
+from .T2277 import T2277
+from .T2278 import T2278
 from .T2261 import T2261
 from .T2262 import T2262
 from .T2320 import T2320
@@ -66,6 +68,8 @@ ROBOVAC_MODELS = {
     "T2193": T2193,
     "T2194": T2194,
     "T2267": T2267,
+    "T2277": T2277,
+    "T2278": T2278,
     "T2261": T2261,
     "T2262": T2262,
     "T2320": T2320
