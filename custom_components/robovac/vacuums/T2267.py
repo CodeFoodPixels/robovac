@@ -18,14 +18,14 @@ class T2277:
     )
     robovac_features = (
     #    RoboVacEntityFeature.CLEANING_TIME
-    #    | RoboVacEntityFeature.CLEANING_AREA
+    #     | RoboVacEntityFeature.CLEANING_AREA
            RoboVacEntityFeature.DO_NOT_DISTURB
-        | RoboVacEntityFeature.AUTO_RETURN
+    #     | RoboVacEntityFeature.AUTO_RETURN
     #     | RoboVacEntityFeature.ROOM
     #     | RoboVacEntityFeature.ZONE
          | RoboVacEntityFeature.BOOST_IQ
     #     | RoboVacEntityFeature.MAP
-    #    | RoboVacEntityFeature.CONSUMABLES
+    #     | RoboVacEntityFeature.CONSUMABLES
     )
     commands = {
         RobovacCommand.MODE: {  #works   (Start Auto and Return dock commands tested)
