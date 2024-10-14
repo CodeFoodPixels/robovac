@@ -46,7 +46,7 @@ Add the below text to your scripts.yaml file for a xxC RoboVAC. It should be in 
 15c_smallroomclean:
   alias: 15C_smallRoomClean
   sequence:
-  - service: vacuum.send_command
+  - action: vacuum.send_command
     data:
       command: smallRoomClean
     target:
@@ -55,7 +55,7 @@ Add the below text to your scripts.yaml file for a xxC RoboVAC. It should be in 
 15c_edgeclean:
   alias: 15C_edgeClean
   sequence:
-  - service: vacuum.send_command
+  - action: vacuum.send_command
     data:
       command: edgeClean
     target:
@@ -64,7 +64,7 @@ Add the below text to your scripts.yaml file for a xxC RoboVAC. It should be in 
 15c_dock:
   alias: 15C_dock
   sequence:
-  - service: vacuum.return_to_base
+  - action: vacuum.return_to_base
     target:
       entity_id: vacuum.15c
   mode: single
@@ -74,7 +74,7 @@ If you have a Gxx add this to your scripts.yaml
 g30_autoclean:
   alias: G30_autoClean
   sequence:
-  - service: vacuum.send_command
+  - action: vacuum.send_command
     data:
       command: autoClean
     target:
@@ -83,7 +83,7 @@ g30_autoclean:
 g30_autoreturn:
   alias: G30_autoReturn
   sequence:
-  - service: vacuum.send_command
+  - action: vacuum.send_command
     data:
       command: autoReturn
     target:
@@ -92,7 +92,7 @@ g30_autoreturn:
 g30_donotdisturb:
   alias: G30_do_Not_Disturb
   sequence:
-  - service: vacuum.send_command
+  - action: vacuum.send_command
     data:
       command: doNotDisturb
     target:
@@ -101,7 +101,7 @@ g30_donotdisturb:
 g30_dock:
   alias: G30_dock
   sequence:
-  - service: vacuum.return_to_base
+  - action: vacuum.return_to_base
     target:
       entity_id: vacuum.g30
   mode: single
@@ -111,7 +111,7 @@ If you have an X8 add this to your scripts.yaml
 x8_boostiq:
   alias: x8_boostIQ
   sequence:
-  - service: vacuum.send_command
+  - action: vacuum.send_command
     data:
       command: boostIQ
     target:
@@ -120,7 +120,7 @@ x8_boostiq:
 x8_autoclean:
   alias: x8_autoClean
   sequence:
-  - service: vacuum.send_command
+  - action: vacuum.send_command
     data:
       command: autoClean
     target:
@@ -129,7 +129,7 @@ x8_autoclean:
 x8_autoreturn:
   alias: X8_autoReturn
   sequence:
-  - service: vacuum.send_command
+  - action: vacuum.send_command
     data:
       command: autoReturn
     target:
@@ -138,7 +138,7 @@ x8_autoreturn:
 x8_donotdisturb:
   alias: X8_do_Not_Disturb
   sequence:
-  - service: vacuum.send_command
+  - action: vacuum.send_command
     data:
       command: doNotDisturb
     target:
@@ -147,7 +147,7 @@ x8_donotdisturb:
 x8_dock:
   alias: X8_dock
   sequence:
-  - service: vacuum.return_to_base
+  - action: vacuum.return_to_base
     target:
       entity_id: vacuum.x8
   mode: single
