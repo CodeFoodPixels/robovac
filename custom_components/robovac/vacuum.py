@@ -30,11 +30,7 @@ from homeassistant.loader import bind_hass
 from homeassistant.components.vacuum import (
     StateVacuumEntity,
     VacuumEntityFeature,
-    STATE_CLEANING,
-    STATE_DOCKED,
-    STATE_ERROR,
-    STATE_IDLE,
-    STATE_RETURNING,
+    VacuumActivity
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -191,7 +187,7 @@ class RoboVacEntity(StateVacuumEntity):
         return self._attr_ip_address
 
     @property
-    def state(self) -> str | None:
+    def activity(self) -> str | None:
         if self.tuya_state is None:
             return STATE_UNAVAILABLE
         elif (
@@ -208,15 +204,16 @@ class RoboVacEntity(StateVacuumEntity):
                     getErrorMessage(self.error_code)
                 )
             )
-            return STATE_ERROR
+            return VacuumActivity.ERROR
         elif self.tuya_state == "Charging" or self.tuya_state == "completed":
-            return STATE_DOCKED
+            return VacuumActivity.DOCKED
         elif self.tuya_state == "Recharge":
-            return STATE_RETURNING
+            return VacuumActivity.RETURNING
         elif self.tuya_state == "Sleeping" or self.tuya_state == "standby":
-            return STATE_IDLE
+            return VacuumActivity.IDLE
         else:
-            return STATE_CLEANING
+            return VacuumActivity.CLEANING
+
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
