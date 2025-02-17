@@ -187,7 +187,7 @@ class RoboVacEntity(StateVacuumEntity):
         return self._attr_ip_address
 
     @property
-    def state(self) -> str | None:
+    def activity(self) -> str | None:
         if self.tuya_state is None:
             return STATE_UNAVAILABLE
         elif (
