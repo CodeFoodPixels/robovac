@@ -30,7 +30,7 @@ from homeassistant.loader import bind_hass
 from homeassistant.components.vacuum import (
     StateVacuumEntity,
     VacuumEntityFeature,
-    VacuumActivity
+    VacuumActivity,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -213,7 +213,6 @@ class RoboVacEntity(StateVacuumEntity):
             return VacuumActivity.IDLE
         else:
             return VacuumActivity.CLEANING
-
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
