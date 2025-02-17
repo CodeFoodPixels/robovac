@@ -218,7 +218,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handles options flow for the component."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        self.config_entry = config_entry
+        self._config_entry = config_entry
         self.selected_vacuum = None
 
     async def async_step_init(self, user_input=None):
