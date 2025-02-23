@@ -14,6 +14,7 @@
 
 """Config flow for Eufy Robovac integration."""
 from __future__ import annotations
+import json
 
 import logging
 from typing import Any, Optional
@@ -137,8 +138,7 @@ def get_eufy_vacuums(self):
     for item in items:
         if item["product"]["appliance"] == "Cleaning":
             try:
-                device = tuya_client.get_device(item["id"])
-                _LOGGER.debug("Robovac schema: {}".format(device["schema"]))
+                device = tuya_client.get_device(item["device"]["id"])
 
                 vac_details = {
                     CONF_ID: item["id"],
@@ -153,10 +153,11 @@ def get_eufy_vacuums(self):
                 self[CONF_VACS][item["id"]] = vac_details
             except:
                 _LOGGER.debug(
-                    "Vacuum {} found on Eufy, but not on Tuya. Skipping.".format(
-                        item["id"]
+                    "Skipping vacuum {}: found on Eufy but not on Tuya. Eufy details:".format(
+                        item["device"]["id"]
                     )
                 )
+                _LOGGER.debug(json.dumps(item["device"], indent=2))
 
     return response
 
@@ -217,7 +218,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handles options flow for the component."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        self.config_entry = config_entry
+        self._config_entry = config_entry
         self.selected_vacuum = None
 
     async def async_step_init(self, user_input=None):
