@@ -54,6 +54,8 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.hashes import Hash, MD5
 from cryptography.hazmat.primitives.padding import PKCS7
 
+from .vacuums.base import RobovacCommand
+
 INITIAL_BACKOFF = 5
 INITIAL_QUEUE_TIME = 0.1
 BACKOFF_MULTIPLIER = 1.70224
@@ -604,6 +606,7 @@ class TuyaDevice:
 
     def __init__(
         self,
+        model_details,
         device_id,
         host,
         timeout,
@@ -616,6 +619,7 @@ class TuyaDevice:
     ):
         """Initialize the device."""
         self._LOGGER = _LOGGER.getChild(device_id)
+        self.model_details = model_details
         self.device_id = device_id
         self.host = host
         self.port = port
@@ -717,7 +721,9 @@ class TuyaDevice:
         try:
             sock.connect((self.host, self.port))
         except (socket.timeout, TimeoutError) as e:
-            self._dps["106"] = "CONNECTION_FAILED"
+            self._dps[self.model_details.commands[RobovacCommand.ERROR]] = (
+                "CONNECTION_FAILED"
+            )
             raise ConnectionTimeoutException("Connection timed out")
         loop = asyncio.get_running_loop()
         loop.create_connection
@@ -744,6 +750,7 @@ class TuyaDevice:
 
         if self.writer is not None:
             self.writer.close()
+            await self.writer.wait_closed()
 
         if self.reader is not None and not self.reader.at_eof():
             self.reader.feed_eof()
@@ -754,7 +761,7 @@ class TuyaDevice:
         message = Message(Message.GET_COMMAND, payload, encrypt=encrypt, device=self)
         self._queue.append(message)
         response = await self.async_recieve(message)
-        asyncio.create_task(self.async_update_state(response))
+        await self.async_update_state(response)
 
     async def async_set(self, dps):
         t = int(time.time())
@@ -896,9 +903,6 @@ class TuyaDevice:
             await self._async_send(message, retries=retries - 1)
 
     async def async_recieve(self, message):
-        if self._connected is False:
-            return
-
         if message.expect_response is True:
             try:
                 self._recieve_task = asyncio.create_task(
