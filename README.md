@@ -106,7 +106,7 @@ g30_dock:
       entity_id: vacuum.g30
   mode: single
 ```
-If you have an X8 add this to your scripts.yaml
+If you have an X8 add this to your scripts.yaml (This also works for the L70 Hybrid)
 ```
 x8_boostiq:
   alias: x8_boostIQ
@@ -211,7 +211,7 @@ stats:
       subtitle: Dnd
       value_template: '{% if (value == true) %}On{% else %}Off{% endif %}'
 ```
-Again if you have the X8 you will add these lines to the cards yaml.
+Again if you have the X8 or L70 Hybrid you will add these lines to the cards yaml.
 ```
 type: custom:vacuum-card
 entity: vacuum.x8
