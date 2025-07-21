@@ -1,29 +1,33 @@
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
+# Eufy RobovVac control for Home Assistant
+
+[![HACS Badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
 
 [![Sponsor me on Github Sponsors](https://img.shields.io/badge/Sponsor-ea4aaa?style=for-the-badge&logo=github-sponsors&logoColor=%23EA4AAA&labelColor=white)](https://github.com/sponsors/CodeFoodPixels)
 [![Tip me through ko-fi](https://img.shields.io/badge/Ko–Fi-FF5E5B?style=for-the-badge&logo=kofi&logoColor=%23FF5E5B&labelColor=white)](https://ko-fi.com/O5O3O08PA)
 [![Tip me through PayPal](https://img.shields.io/badge/Paypal.me-00457C?style=for-the-badge&logo=paypal&logoColor=%2300457C&labelColor=white)](https://paypal.me/CodeFoodPixels)
 [![Tip me through Monzo](https://img.shields.io/badge/Monzo.me-14233C?style=for-the-badge&logo=monzo&logoColor=%2314233C&labelColor=white)](https://monzo.me/codefoodpixels)
 
-# Eufy RobovVac control for Home Assistant
+## Description
 
 A brand new version Eufy RoboVac integration for Home Assistant that includes a Config Flow to add your RoboVac(s) and the local key and ID required.  All you need to do is enter your Eufy app credentials and the Config Flow will look up the details for you. After the initial config use the configuration button on the Integration to enter the RoboVac IP address when prompted.
 
-This work has evovled from the original work by Richard Mitchell https://github.com/mitchellrj and the countless others who have contributed over the last couple of years. It also builds on the work done by Andre Borie https://gitlab.com/Rjevski/eufy-device-id-and-local-key-grabber to get the required local ID and key.
+This work has evovled from the original work by Richard Mitchell <https://github.com/mitchellrj> and the countless others who have contributed over the last couple of years. It also builds on the work done by Andre Borie <https://gitlab.com/Rjevski/eufy-device-id-and-local-key-grabber> to get the required local ID and key.
 
 This project has been forked many times since the  I am building upon the original work done by Richard and attempting to simplfy the operation and number of files involved.  
 
-## Installation ##
-Couple of Pre-reqs 
+## Installation
+
+Couple of Pre-reqs
+
 1. Make sure your Home Assistant Core is up to date
 2. Remove any previous Eufy or RoboVac installation including entries in the configuration.yaml
-
 
 If you want you can clone this repo manually, oterwise use HACS (Recommended).
 
 ### Using HACS
+
 1. In HACS add this repo as an integration additional repository.
-2. Then install it. 
+2. Then install it.
 3. Restart Home Assistant
 4. Go to the Integrations Page and Click +Add Integration button
 5. Search for Eufy Robovac and select it
@@ -39,10 +43,11 @@ Please note: You may have to get a new version of the access key for your vacuum
 
 ### Optional 1: Scripts
 
-The integration is designed to work with the standard Home Assistant Lovelace card but that doesnt support all the options of your Robovac. I have created some scripts to send the relevant commands to the Robovac. 
+The integration is designed to work with the standard Home Assistant Lovelace card but that doesnt support all the options of your Robovac. I have created some scripts to send the relevant commands to the Robovac.
 
 Add the below text to your scripts.yaml file for a xxC RoboVAC. It should be in the same folder as your configuration.yaml
-```
+
+```yaml
 15c_smallroomclean:
   alias: 15C_smallRoomClean
   sequence:
@@ -69,8 +74,10 @@ Add the below text to your scripts.yaml file for a xxC RoboVAC. It should be in 
       entity_id: vacuum.15c
   mode: single
 ```
+
 If you have a Gxx add this to your scripts.yaml
-```
+
+```yaml
 g30_autoclean:
   alias: G30_autoClean
   sequence:
@@ -106,8 +113,10 @@ g30_dock:
       entity_id: vacuum.g30
   mode: single
 ```
+
 If you have an X8 add this to your scripts.yaml
-```
+
+```yaml
 x8_boostiq:
   alias: x8_boostIQ
   sequence:
@@ -152,6 +161,7 @@ x8_dock:
       entity_id: vacuum.x8
   mode: single
 ```
+
 The facilities in the script options above only work on the those model series. i.e. You cant do edge cleaning on the G30 and you cant do the autoreturn on the 15C.
 
 ### Optional 2 : Lovelace Card
@@ -159,7 +169,8 @@ The facilities in the script options above only work on the those model series. 
 Search in HACS for the Vacuum Card by Denys Dovhan and install it and configure it in lovelace to use you vacuum.  Note there is a minor "feature" in the vacuum card where it doesnt show the correct values in toolbar when they update and there is a template adjusting what is being displayed. A screen refresh shows the correct vaules.  Hopefully this will be fixed soon.
 
 Edit the lovelace vaccum card and add the following to the cards yaml if you have a xxC.
-```
+
+```yaml
 type: custom:vacuum-card
 entity: vacuum.15c
 image: default
@@ -177,8 +188,10 @@ shortcuts:
     service: script.15c_smallroomclean
     icon: mdi:timer-cog-outline
 ```
+
 Again if you have the Gxx you will add these lines to the cards yaml.
-```
+
+```yaml
 type: custom:vacuum-card
 entity: vacuum.g30
 image: default
@@ -211,8 +224,10 @@ stats:
       subtitle: Dnd
       value_template: '{% if (value == true) %}On{% else %}Off{% endif %}'
 ```
+
 Again if you have the X8 you will add these lines to the cards yaml.
-```
+
+```yaml
 type: custom:vacuum-card
 entity: vacuum.x8
 image: default
@@ -252,15 +267,16 @@ shortcuts:
     icon: mdi:volume-off
 ```
 
-## Debugging ##
-I have left quite a few debug statements in the code and they may be useful to see whats happening by looking in the System Log files. The Log Viewer Addon available in the Home Assistance store can be very useful to watch the logs being updated in real time.  To get the debugging to add to the logs you need to add the below text to your configuration.yaml 
-```
+## Debugging
+
+I have left quite a few debug statements in the code and they may be useful to see whats happening by looking in the System Log files. The Log Viewer Addon available in the Home Assistance store can be very useful to watch the logs being updated in real time.  To get the debugging to add to the logs you need to add the below text to your configuration.yaml
+
+```yaml
 logger:
   default: warning
   logs:
     custom_components.robovac.vacuum: debug
     custom_components.robovac.tuyalocalapi: debug
 ```
+
 ---
-
-
