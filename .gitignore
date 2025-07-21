@@ -1,1 +1,4 @@
 /node_modules
+
+# IDE and Editor specific files
+/.vscode/settings.json
