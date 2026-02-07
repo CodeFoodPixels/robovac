@@ -133,24 +133,24 @@ def get_eufy_vacuums(self):
         phone_code=self[CONF_COUNTRY_CODE],
     )
 
-    items = device_response["items"]
+    items = device_response["devices"]
     self[CONF_VACS] = {}
     for item in items:
-        if item["device"]["product"]["appliance"] == "Cleaning":
+        if item["product"]["appliance"] == "Cleaning":
             try:
                 device = tuya_client.get_device(item["device"]["id"])
 
                 vac_details = {
-                    CONF_ID: item["device"]["id"],
-                    CONF_MODEL: item["device"]["product"]["product_code"],
-                    CONF_NAME: item["device"]["alias_name"],
-                    CONF_DESCRIPTION: item["device"]["name"],
-                    CONF_MAC: item["device"]["wifi"]["mac"],
+                    CONF_ID: item["id"],
+                    CONF_MODEL: item["product"]["product_code"],
+                    CONF_NAME: item["alias_name"],
+                    CONF_DESCRIPTION: item["name"],
+                    CONF_MAC: item["wifi"]["mac"],
                     CONF_IP_ADDRESS: "",
                     CONF_AUTODISCOVERY: True,
                     CONF_ACCESS_TOKEN: device["localKey"],
                 }
-                self[CONF_VACS][item["device"]["id"]] = vac_details
+                self[CONF_VACS][item["id"]] = vac_details
             except:
                 _LOGGER.debug(
                     "Skipping vacuum {}: found on Eufy but not on Tuya. Eufy details:".format(
